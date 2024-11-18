@@ -1,0 +1,6 @@
+ID: 866 | email: user866@mail.ru
+Activity log:
+1. [create record] at 2024-10-23 17:21:26.8966633 +0300 MSK m=+0.017850401
+2. [create record] at 2024-10-23 17:21:26.8966633 +0300 MSK m=+0.017850401
+3. [logged out] at 2024-10-23 17:21:26.8966633 +0300 MSK m=+0.017850401
+4. [delete record] at 2024-10-23 17:21:26.8966633 +0300 MSK m=+0.017850401

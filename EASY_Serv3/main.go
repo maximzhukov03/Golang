@@ -12,7 +12,7 @@ type User struct{
 	EMAIL string `json:"email,omitempty"`
 }
 
-var users = []User{{1, "Petya", "maxmaxiiim2@mal.ru"}, {2, "Gosha", "wqeaxiiim2@mal.ru"}}
+var users = []User{{1, "Petya", "maxmaxiiim2@mal.r"}, {2, "Gosha", "wqeaxiiim2@mal.r"}}
 
 func main(){
 	http.HandleFunc("/user", handleUser)

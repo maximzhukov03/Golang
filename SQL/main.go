@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -41,7 +42,7 @@ func main() {
 	for rows.Next(){
 		u := User{}
 		err := rows.Scan(&u.ID, &u.Name, &u.Email, &u.Password, &u.RegisterAt)
-		if err != nil{
+		if err != nil{ 
 			log.Fatal(err)
 		}
 		users = append(users, u)
@@ -52,5 +53,16 @@ func main() {
 		log.Fatal(err)
 	}
 
+	var u User
+	err = db.QueryRow("select * from users where id = $1", 1).Scan(&u.ID, &u.Name, &u.Email, &u.Password, &u.RegisterAt)
+	if err != nil{
+		if errors.Is(err, sql.ErrNoRows){
+			fmt.Println("no rows")
+			return
+		}
+		log.Fatal(err)
+	}
+
+	fmt.Println(u)
 	fmt.Println(users)
 }

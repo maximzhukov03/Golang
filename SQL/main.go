@@ -19,7 +19,7 @@ type User struct {
 }
 
 func main() {
-	connect := "host=127.0.0.1 port=5432 user=postgres dbname=postgres sslmode=disable password=goLANG" 
+	connect := "host=127.0.0.1 port=5432 user=postgres dbname=User sslmode=disable password=cokol1000letia" 
 	db, err := sql.Open("postgres", connect)
 	if err != nil {
 		log.Fatal(err)
@@ -33,7 +33,7 @@ func main() {
 
 	fmt.Println("CONECTED Наконец то блять")
 
-	rows, err := db.Query("select * from users")
+	rows, err := db.Query("select * from employee")
 	if err != nil {
 		log.Fatal(err)
 	}

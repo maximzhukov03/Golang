@@ -8,6 +8,7 @@ import (
 	"time"
 
 	_ "github.com/lib/pq"
+	"golang.org/x/tools/go/analysis/passes/nilfunc"
 )
 
 type User struct {
@@ -65,5 +66,11 @@ func main() {
 	// }
 
 	// fmt.Println(us)
-	fmt.Println(users)
+	for _, elem := range users{
+		email := "nil"
+		if elem.email != nil{
+			email = *elem.email
+		}
+		fmt.Printf("[ID]: %d, [Name]: %s %s, [email]: %s, [Date]: %s\n", elem.id, elem.name, elem.second_name, email, elem.date_of_birth.Format("2006-01-02"))
+	}
 }

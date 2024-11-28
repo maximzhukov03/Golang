@@ -66,10 +66,10 @@ func main() {
 
 	// fmt.Println(us)
 	for _, elem := range users{
-		email := "nil"
+		email := "[НЕ ИМЕЕТ]"
 		if elem.email != nil{
 			email = *elem.email
 		}
-		fmt.Printf("[ID]: %d, [Name]: %s %s, [email]: %s, [Date]: %s\n", elem.id, elem.name, elem.second_name, email, elem.date_of_birth.Format("2006-01-02"))
+		fmt.Printf("[ID]: %d| [Name]: %s %s, [email]: %s, [Date]: %s\n", elem.id, elem.name, elem.second_name, email, elem.date_of_birth.Format("2006-01-02"))
 	}
 }

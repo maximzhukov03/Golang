@@ -8,7 +8,6 @@ import (
 	"time"
 
 	_ "github.com/lib/pq"
-	"golang.org/x/tools/go/analysis/passes/nilfunc"
 )
 
 type User struct {

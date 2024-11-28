@@ -37,10 +37,11 @@ func main() {
 	}
 
 	for _, elem := range users {
+		var email string
 		if !elem.email.Valid{
-			email := "НЕТ ПОЧТЫ"
+			email = "НЕТ ПОЧТЫ"
 		}else{
-			email := elem.email
+			email = elem.email.String
 		}
 		fmt.Printf("[ID]: %d| [Name]: %s %s, [email]: %s, [Date]: %s\n", elem.id, elem.name, elem.second_name, email, elem.date_of_birth.Format("2006-01-02"))
 	}

@@ -31,7 +31,7 @@ func main() {
 
 	fmt.Println("CONECTED Наконец то блять")
 	
-	err = InsertUser(db, User{name: "Wil", second_name: "Sirka", email: sql.NullString{String: "Sirka@mail.com", Valid: true}, date_of_birth: time.Date(2024, time.June, 1,0,0,0,0, time.UTC)})
+	err = InsertUser(db, User{id: 101, name: "Wil", second_name: "Sirka", email: sql.NullString{String: "Sirka@mail.com", Valid: true}, date_of_birth: time.Date(2024, time.June, 1,0,0,0,0, time.UTC)})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -89,6 +89,6 @@ func InsertUser(db *sql.DB, u User) error {
 	}else{
 		email = u.email.String
 	}
-	_, err := db.Exec("INSERT INTO employee (name, second_name, email) VALUES ($1, $2, $3)", u.name, u.second_name, email)
+	_, err := db.Exec("INSERT INTO employee (name, second_name, email) VALUES ($1, $2, $3, $4)", u.id, u.name, u.second_name, email)
 	return err
 }

@@ -30,7 +30,12 @@ func main() {
 	}
 
 	fmt.Println("CONECTED Наконец то блять")
-
+	
+	err = InsertUser(db, User{name: "Wil", second_name: "Sirka", email: sql.NullString{String: "Sirka@mail.com", Valid: true}, date_of_birth: time.Date(2024, time.June, 1,0,0,0,0, time.UTC)})
+	if err != nil {
+		log.Fatal(err)
+	}
+	
 	users, err := getUsers(db)
 	if err != nil {
 		log.Fatal(err)
@@ -45,6 +50,11 @@ func main() {
 		}
 		fmt.Printf("[ID]: %d| [Name]: %s %s, [email]: %s, [Date]: %s\n", elem.id, elem.name, elem.second_name, email, elem.date_of_birth.Format("2006-01-02"))
 	}
+
+	// err = InsertUser(db, User{name: "William", second_name: "Sir", email: "Sir@mail.com"})
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 }
 
 func getUsers(db *sql.DB) ([]User, error) {
@@ -73,6 +83,12 @@ func getUsers(db *sql.DB) ([]User, error) {
 }
 
 func InsertUser(db *sql.DB, u User) error {
-	_, err := db.Exec("INSERT INTO employee (name, second_name, email) VALUES ($1, $2, $3)", u.name, u.second_name, u.email)
+	var email string
+	if !u.email.Valid{
+		email = "НЕТ ПОЧТЫ"
+	}else{
+		email = u.email.String
+	}
+	_, err := db.Exec("INSERT INTO employee (name, second_name, email) VALUES ($1, $2, $3)", u.name, u.second_name, email)
 	return err
 }

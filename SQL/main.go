@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"errors"
 	//"errors"
 	"fmt"
 	"log"
@@ -45,6 +46,10 @@ func main() {
 		err := rows.Scan(&u.id, &u.name, &u.second_name, &u.email, &u.date_of_birth)
 		if err != nil {
 			log.Fatal(err)
+		}
+		if errors.Is(err, sql.ErrNoRows) {
+			fmt.Println("no rows")
+			return
 		}
 		users = append(users, u)
 	}

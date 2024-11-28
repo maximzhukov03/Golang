@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"errors"
 	//"errors"
 	"fmt"
 	"log"
@@ -34,9 +33,25 @@ func main() {
 
 	fmt.Println("CONECTED Наконец то блять")
 
+	users, err := getUsers(db)
+	if err != nil{
+		log.Fatal(err)
+	}
+	for _, elem := range users{
+		email := "[НЕ ИМЕЕТ]"
+		if elem.email != nil{
+			email = *elem.email
+		}
+		fmt.Printf("[ID]: %d| [Name]: %s %s, [email]: %s, [Date]: %s\n", elem.id, elem.name, elem.second_name, email, elem.date_of_birth.Format("2006-01-02"))
+	}
+
+	err = InsertUser(db, User{name: "William", second_name: "Sir", email: "Sir@mail.com", })
+}
+
+func getUsers(db *sql.DB) ([]User, error){
 	rows, err := db.Query("select * from employee")
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	defer rows.Close()
 
@@ -45,20 +60,25 @@ func main() {
 		u := User{}
 		err := rows.Scan(&u.id, &u.name, &u.second_name, &u.email, &u.date_of_birth)
 		if err != nil {
-			log.Fatal(err)
-		}
-		if errors.Is(err, sql.ErrNoRows) {
-			fmt.Println("no rows")
-			return
+			return nil, err
 		}
 		users = append(users, u)
 	}
 
 	err = rows.Err()
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
+	return users, nil
+}
+
+
+func getUserById(id int, db *sql.DB) (User, error){
+	var us User
+	err := db.QueryRow("select id, name from employee where id = $1", id).Scan(&us.id, &us.name)
+	return us, err
+	
 	// var us User
 	// err = db.QueryRow("select id, name from employee where id = $1", 2).Scan(&us.id, &us.name)
 	// if err != nil {
@@ -70,11 +90,10 @@ func main() {
 	// }
 
 	// fmt.Println(us)
-	for _, elem := range users{
-		email := "[НЕ ИМЕЕТ]"
-		if elem.email != nil{
-			email = *elem.email
-		}
-		fmt.Printf("[ID]: %d| [Name]: %s %s, [email]: %s, [Date]: %s\n", elem.id, elem.name, elem.second_name, email, elem.date_of_birth.Format("2006-01-02"))
-	}
+
+}
+
+func InsertUser(db *sql.DB, u User) error{
+	_, err := db.Exec("insert into users (name, second_name, email, date_of_birth) values ($1, $2, $3, $4)", u.name, u.second_name, u.email, u.date_of_birth )
+	return err
 }

@@ -45,11 +45,6 @@ func main() {
 		}
 		fmt.Printf("[ID]: %d| [Name]: %s %s, [email]: %s, [Date]: %s\n", elem.id, elem.name, elem.second_name, email, elem.date_of_birth.Format("2006-01-02"))
 	}
-
-	// err = InsertUser(db, User{name: "William", second_name: "Sir", email: "Sir@mail.com"})
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
 }
 
 func getUsers(db *sql.DB) ([]User, error) {

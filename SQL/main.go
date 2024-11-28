@@ -89,6 +89,6 @@ func InsertUser(db *sql.DB, u User) error {
 	}else{
 		email = u.email.String
 	}
-	_, err := db.Exec("INSERT INTO employee (name, second_name, email) VALUES ($1, $2, $3, $4)", u.id, u.name, u.second_name, email)
+	_, err := db.Exec("INSERT INTO employee (id, name, second_name, email, data_of_birth) VALUES ($1, $2, $3, $4, $5)", u.id, u.name, u.second_name, email, u.date_of_birth)
 	return err
 }

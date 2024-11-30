@@ -41,10 +41,26 @@ func main() {
 		log.Fatal(err)
 	}
 
+	err = UpdateUser(db, 101, User{id: 101, name: "WilyWilyWily", second_name: "Sirka", email: sql.NullString{String: "SirDFSDFSDFSDF@mail.com", Valid: true}, date_of_birth: time.Date(2024, time.June, 1,0,0,0,0, time.UTC)})
+	if err != nil{
+		log.Fatal(err)
+	}
+
+	err = getUsers(db)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	err = DeleteUser(db, 101)
 	if err != nil{
 		log.Fatal(err)
 	}
+
+	err = getUsers(db)
+	if err != nil {
+		log.Fatal(err)
+	}
+	
 
 	// err = InsertUser(db, User{name: "William", second_name: "Sir", email: "Sir@mail.com"})
 	// if err != nil {
@@ -100,5 +116,12 @@ func InsertUser(db *sql.DB, u User) error {
 
 func DeleteUser(db *sql.DB, id int) error {
 	_, err := db.Exec("DELETE from employee where id = $1", id)
+	log.Println("ОбЪект удален")
+	return err
+}
+
+func UpdateUser(db *sql.DB, id int, newUser User) error{
+	_, err := db.Exec("update employee set name=$1, email=$2 where id=$3", newUser.name, newUser.email, id)
+	log.Println("Обновление завершено")
 	return err
 }

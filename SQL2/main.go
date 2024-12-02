@@ -30,17 +30,19 @@ func main(){
 
 	fmt.Println("CONECTED")
 
-	GetUsers(db)
+	users, err := GetUsers(db)
 	if err != nil{
 		log.Fatal(err)
 	}
+	fmt.Println(users)
 
 }
 
-func GetUsers(db *sql.DB) error{
+func GetUsers(db *sql.DB) ([]User, error){
 	rows, err := db.Query("SELECT * FROM user_data")
 	if err != nil{
 		log.Fatal(err)
+		return nil, err
 	}
 	defer rows.Close()
 
@@ -49,15 +51,15 @@ func GetUsers(db *sql.DB) error{
 		u := User{}
 		err := rows.Scan(&u.id, &u.first_name, &u.second_name, &u.email, &u.password)
 		if err != nil{
-			return err
+			return nil, err
 		}
 		users = append(users, u)
 	}
 
 	err = rows.Err()
 	if err != nil{
-		return err
+		return nil, err
 	}
 
-	return nil
+	return users, nil
 }

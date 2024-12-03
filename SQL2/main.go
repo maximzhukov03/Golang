@@ -75,6 +75,13 @@ func handleUser(w http.ResponseWriter, r *http.Request) {
 			log.Fatal(err)
 		}
 		log.Println("CONECTED")
+		postUser(w, r)
+		err = DeleteUser(db, user)
+		if err != nil{
+			log.Fatal("NOT DELETE")
+		}
+
+
 	default:
 		w.WriteHeader(http.StatusBadRequest)
 	}
@@ -162,4 +169,8 @@ func InsertUser(db *sql.DB, u User) error { // Добавление Юзера �
 	return err
 }
 
-
+func DeleteUser(db *sql.DB, u User) error {
+	_, err := db.Exec("DELETE FROM user_data where first_name = $1", u.FIRST_NAME)
+	log.Println("DETETE USER")
+	return err
+}

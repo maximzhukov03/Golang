@@ -34,7 +34,16 @@ func main(){
 func handleUser(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		db, err := PingDB()
+		connect := "host=127.0.0.1 port=5432 user=postgres dbname=users_log sslmode=disable password=goLANG"
+		db, err := sql.Open("postgres", connect)
+		if err != nil{
+			log.Fatal(err)
+		}
+		defer db.Close()
+	
+		if err := db.Ping(); err != nil{
+			log.Fatal(err)
+		}
 		log.Println("CONECTED")
 		users, err = GetUsers(db)
 		if err != nil{
@@ -43,7 +52,16 @@ func handleUser(w http.ResponseWriter, r *http.Request) {
 		log.Println("CONECTED")
 		getUser(w, r)
 	case http.MethodPost:
-		db, err := PingDB()
+		connect := "host=127.0.0.1 port=5432 user=postgres dbname=users_log sslmode=disable password=goLANG"
+		db, err := sql.Open("postgres", connect)
+		if err != nil{
+			log.Fatal(err)
+		}
+		defer db.Close()
+	
+		if err := db.Ping(); err != nil{
+			log.Fatal(err)
+		}
 		log.Println("CONECTED")
 		postUser(w, r)
 		err = InsertUser(db, user)
@@ -73,6 +91,7 @@ func postUser(w http.ResponseWriter, r *http.Request) User{ // Размещен�
 	if err = json.Unmarshal(reqBytes, &user); err != nil{
 		w.WriteHeader(http.StatusBadRequest)
 	}
+	fmt.Println(user)
 	return user
 }
 
@@ -129,25 +148,11 @@ func GetUser(db *sql.DB, id int) ([]User, error){ //  Получение Юзе�
 }
 
 func InsertUser(db *sql.DB, u User) error { // Добавление Юзера в БД
-	_, err := db.Exec("INSERT INTO user_data (first_name, second_name, email, password) VALUES ($1, $2, $3, $4)", u.ID, u.FIRST_NAME, u.SECOND_NAME, u.EMAIL, u.PASSWORD)
+	_, err := db.Exec("INSERT INTO user_data (first_name, second_name, email, password) VALUES ($1, $2, $3, $4)", u.FIRST_NAME, u.SECOND_NAME, u.EMAIL, u.PASSWORD)
 	if err != nil{
 		log.Fatal("NOT INSERT USER")
 		return err
 	}
 	log.Println("ADDED USER")
 	return err
-}
-
-func PingDB() (*sql.DB, error){
-	connect := "host=127.0.0.1 port=5432 user=postgres dbname=users_log sslmode=disable password=goLANG"
-	db, err := sql.Open("postgres", connect)
-	if err != nil{
-		log.Fatal(err)
-	}
-	defer db.Close()
-
-	if err := db.Ping(); err != nil{
-		log.Fatal(err)
-	}
-	return db, err
 }

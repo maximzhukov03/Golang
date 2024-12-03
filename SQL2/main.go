@@ -1,40 +1,40 @@
 package main
 
 import (
-	"database/sql"
+	// "database/sql"
 	"encoding/json"
-	"fmt"
-	"log"
+	// "fmt"
+	// "log"
 	"net/http"
 
 	_ "github.com/lib/pq"
 )
 
 type User struct{
-	id int64 
-	first_name string
-	second_name string
-	email string
-	password string
+	ID    int    `json:"id"`
+	FIRST_NAME  string `json:"first_name"`
+	SECOND_NAME string `json:"second_name"`
+	EMAIL string `json:"email"`
+	PASSWORD string `json:"password"`
 }
 
-var users = []User{{1, "Mika", "Pedlo", "masdm@maisl.ru", "kjdsakflksjad3j3i2j4o"},}
+var users = []User{{1, "Mika", "Pedlo", "masdm@maisl.ru", "kjdsakflksjad3j3i2j4o"}}
 
 
 func main(){
 
-	connect := "host=127.0.0.1 port=5432 user=postgres dbname=users_log sslmode=disable password=goLANG"
-	db, err := sql.Open("postgres", connect)
-	if err != nil{
-		log.Fatal(err)
-	}
-	defer db.Close()
+	// connect := "host=127.0.0.1 port=5432 user=postgres dbname=users_log sslmode=disable password=goLANG"
+	// db, err := sql.Open("postgres", connect)
+	// if err != nil{
+	// 	log.Fatal(err)
+	// }
+	// defer db.Close()
 
-	if err := db.Ping(); err != nil{
-		log.Fatal(err)
-	}
+	// if err := db.Ping(); err != nil{
+	// 	log.Fatal(err)
+	// }
 
-	fmt.Println("CONECTED")
+	// fmt.Println("CONECTED")
 
 	http.HandleFunc("/user", handleUser)
 	http.ListenAndServe("localhost:8080", nil)
@@ -47,18 +47,18 @@ func main(){
 
 }
 
-func handleUser(w http.ResponseWriter, r *http.Request){
-	switch r.Method{
+func handleUser(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
 	case http.MethodGet:
-		GetUser(w, r)
+		getUser(w, r)
 	default:
 		w.WriteHeader(http.StatusBadRequest)
 	}
 }
 
-func GetUser(w http.ResponseWriter, r *http.Request){
+func getUser(w http.ResponseWriter, r *http.Request) {
 	resp, err := json.Marshal(users)
-	if err != nil{
+	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

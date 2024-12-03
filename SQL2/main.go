@@ -11,20 +11,17 @@ import (
 )
 
 type User struct{
-	id int64
+	id int64 
 	first_name string
 	second_name string
 	email string
 	password string
 }
 
-var users = []User{{1, "Mika", "Pedlo", "masdm@maisl.ru", "kjdsakflksjad3j3i2j4o"}}
+var users = []User{{1, "Mika", "Pedlo", "masdm@maisl.ru", "kjdsakflksjad3j3i2j4o"},}
 
 
 func main(){
-
-	http.HandleFunc("/user", handleUser)
-	http.ListenAndServe("localhost:8080", nil)
 
 	connect := "host=127.0.0.1 port=5432 user=postgres dbname=users_log sslmode=disable password=goLANG"
 	db, err := sql.Open("postgres", connect)
@@ -38,6 +35,9 @@ func main(){
 	}
 
 	fmt.Println("CONECTED")
+
+	http.HandleFunc("/user", handleUser)
+	http.ListenAndServe("localhost:8080", nil)
 
 	// users, err := GetUsers(db)
 	// if err != nil{
@@ -55,6 +55,7 @@ func handleUser(w http.ResponseWriter, r *http.Request){
 }
 
 func GetUsers(w http.ResponseWriter, r *http.Request){
+	log.Println("CONNECTED")
 	resp, err := json.Marshal(users)
 	if err != nil{
 		w.WriteHeader(http.StatusInternalServerError)

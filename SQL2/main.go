@@ -34,13 +34,22 @@ func main(){
 func handleUser(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		db := PingDB()
-		users, _ = GetUsers(db)
+		connect := "host=127.0.0.1 port=5432 user=postgres dbname=users_log sslmode=disable password=goLANG"
+		db, err := sql.Open("postgres", connect)
+		if err != nil{
+			log.Fatal(err)
+		}
+		defer db.Close()
+	
+		if err := db.Ping(); err != nil{
+			log.Fatal(err)
+		}
+		users, err = GetUsers(db)
+		if err != nil{
+			log.Fatal(err)
+		}
+		log.Println("CONECTED")
 		getUser(w, r)
-	case http.MethodPost:
-		db := PingDB()
-		postUser(w, r)
-		InsertUser(db, users)
 	default:
 		w.WriteHeader(http.StatusBadRequest)
 	}

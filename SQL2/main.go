@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os/user"
 
 	_ "github.com/lib/pq"
 )
@@ -18,6 +17,8 @@ type User struct{
 	EMAIL string `json:"email"`
 	PASSWORD string `json:"password"`
 }
+
+var users []User
 
 func main(){
 
@@ -31,7 +32,7 @@ func main(){
 	if err := db.Ping(); err != nil{
 		log.Fatal(err)
 	}
-	users, err := GetUsers(db)
+	users, err = GetUsers(db)
 	if err != nil{
 		log.Fatal(err)
 	}
@@ -51,13 +52,13 @@ func main(){
 func handleUser(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		getUser(w, r, users)
+		getUser(w, r)
 	default:
 		w.WriteHeader(http.StatusBadRequest)
 	}
 }
 
-func getUser(w http.ResponseWriter, r *http.Request, users User) {
+func getUser(w http.ResponseWriter, r *http.Request) {
 	resp, err := json.Marshal(users)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

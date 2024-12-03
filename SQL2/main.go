@@ -65,6 +65,7 @@ func handleUser(w http.ResponseWriter, r *http.Request) {
 		}
 		log.Println("CONECTED")
 		postUser(w, r)
+		fmt.Println(user)
 		err = InsertUser(db, user)
 		if err != nil{
 			log.Fatal(err)
@@ -88,7 +89,6 @@ func postUser(w http.ResponseWriter, r *http.Request) User{ // Размещен�
 	if err != nil{
 		w.WriteHeader(http.StatusBadRequest)
 	}
-	var user User
 	if err = json.Unmarshal(reqBytes, &user); err != nil{
 		w.WriteHeader(http.StatusBadRequest)
 	}

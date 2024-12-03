@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 
@@ -17,25 +18,8 @@ type User struct{
 	EMAIL string `json:"email"`
 	PASSWORD string `json:"password"`
 }
-
+var users []User
 func main(){
-
-	connect := "host=127.0.0.1 port=5432 user=postgres dbname=users_log sslmode=disable password=goLANG"
-	db, err := sql.Open("postgres", connect)
-	if err != nil{
-		log.Fatal(err)
-	}
-	defer db.Close()
-
-	if err := db.Ping(); err != nil{
-		log.Fatal(err)
-	}
-	users, err := GetUsers(db)
-	if err != nil{
-		log.Fatal(err)
-	}
-	fmt.Println("CONECTED")
-
 	http.HandleFunc("/user", handleUser)
 	http.ListenAndServe("localhost:8080", nil)
 
@@ -50,19 +34,37 @@ func main(){
 func handleUser(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		getUser(w, r, users)
+		db := PingDB()
+		users, _ = GetUsers(db)
+		getUser(w, r)
+	case http.MethodPost:
+		db := PingDB()
+		postUser(w, r)
+		InsertUser(db, users)
 	default:
 		w.WriteHeader(http.StatusBadRequest)
 	}
 }
 
-func getUser(w http.ResponseWriter, r *http.Request, users User) {
+func getUser(w http.ResponseWriter, r *http.Request) {
 	resp, err := json.Marshal(users)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	w.Write(resp)
+}
+
+func postUser(w http.ResponseWriter, r *http.Request){
+	reqBytes, err := io.ReadAll(r.Body)
+	if err != nil{
+		w.WriteHeader(http.StatusBadRequest)
+	}
+	var user User
+	if err = json.Unmarshal(reqBytes, &user); err != nil{
+		w.WriteHeader(http.StatusBadRequest)
+	}
+	users = append(users, user)
 }
 
 func GetUsers(db *sql.DB) ([]User, error){
@@ -115,4 +117,28 @@ func GetUser(db *sql.DB, id int) ([]User, error){
 	}
 
 	return users, nil
+}
+
+func InsertUser(db *sql.DB, u User) error {
+	_, err := db.Exec("INSERT INTO user_data (first_name, second_name, email, password) VALUES ($1, $2, $3, $4)", u.ID, u.FIRST_NAME, u.SECOND_NAME, u.EMAIL, u.PASSWORD)
+	if err != nil{
+		log.Fatal("NOT INSERT USER")
+		return err
+	}
+	return err
+}
+
+func PingDB() *sql.DB{
+	connect := "host=127.0.0.1 port=5432 user=postgres dbname=users_log sslmode=disable password=goLANG"
+	db, err := sql.Open("postgres", connect)
+	if err != nil{
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	if err := db.Ping(); err != nil{
+		log.Fatal(err)
+	}
+	fmt.Println("CONECTED")
+	return db
 }

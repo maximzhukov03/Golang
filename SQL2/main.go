@@ -63,6 +63,18 @@ func handleUser(w http.ResponseWriter, r *http.Request) {
 		if err != nil{
 			log.Fatal(err)
 		}
+	case http.MethodDelete:
+		connect := "host=127.0.0.1 port=5432 user=postgres dbname=users_log sslmode=disable password=goLANG"
+		db, err := sql.Open("postgres", connect)
+		if err != nil{
+			log.Fatal(err)
+		}
+		defer db.Close()
+	
+		if err := db.Ping(); err != nil{
+			log.Fatal(err)
+		}
+		log.Println("CONECTED")
 	default:
 		w.WriteHeader(http.StatusBadRequest)
 	}
@@ -85,7 +97,6 @@ func postUser(w http.ResponseWriter, r *http.Request) User{ // Размещен�
 	if err = json.Unmarshal(reqBytes, &user); err != nil{
 		w.WriteHeader(http.StatusBadRequest)
 	}
-	fmt.Println(user)
 	return user
 }
 
@@ -150,3 +161,5 @@ func InsertUser(db *sql.DB, u User) error { // Добавление Юзера �
 	log.Println("ADDED USER")
 	return err
 }
+
+

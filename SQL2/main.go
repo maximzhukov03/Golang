@@ -49,12 +49,14 @@ func main(){
 
 func handleUser(w http.ResponseWriter, r *http.Request){
 	switch r.Method{
-	case http.MethodGet: GetUsers(w, r)
-	default: w.WriteHeader(http.StatusBadRequest)
+	case http.MethodGet:
+		GetUser(w, r)
+	default:
+		w.WriteHeader(http.StatusBadRequest)
 	}
 }
 
-func GetUsers(w http.ResponseWriter, r *http.Request){
+func GetUser(w http.ResponseWriter, r *http.Request){
 	resp, err := json.Marshal(users)
 	if err != nil{
 		w.WriteHeader(http.StatusInternalServerError)
@@ -89,28 +91,28 @@ func GetUsers(w http.ResponseWriter, r *http.Request){
 // 	return users, nil
 // }
 
-func GetUser(db *sql.DB, id int) ([]User, error){
-	rows, err := db.Query("SELECT * FROM user_data where id = $1", id)
-	if err != nil{
-		log.Fatal(err)
-		return nil, err
-	}
-	defer rows.Close()
+// func GetUser(db *sql.DB, id int) ([]User, error){
+// 	rows, err := db.Query("SELECT * FROM user_data where id = $1", id)
+// 	if err != nil{
+// 		log.Fatal(err)
+// 		return nil, err
+// 	}
+// 	defer rows.Close()
 
-	users := make([]User, 0)
-	for rows.Next(){
-		u := User{}
-		err := rows.Scan(&u.id, &u.first_name, &u.second_name, &u.email, &u.password)
-		if err != nil{
-			return nil, err
-		}
-		users = append(users, u)
-	}
+// 	users := make([]User, 0)
+// 	for rows.Next(){
+// 		u := User{}
+// 		err := rows.Scan(&u.id, &u.first_name, &u.second_name, &u.email, &u.password)
+// 		if err != nil{
+// 			return nil, err
+// 		}
+// 		users = append(users, u)
+// 	}
 
-	err = rows.Err()
-	if err != nil{
-		return nil, err
-	}
+// 	err = rows.Err()
+// 	if err != nil{
+// 		return nil, err
+// 	}
 
-	return users, nil
-}
+// 	return users, nil
+// }

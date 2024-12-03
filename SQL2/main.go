@@ -57,7 +57,7 @@ func handleUser(w http.ResponseWriter, r *http.Request) {
 			log.Fatal(err)
 		}
 		log.Println("CONECTED")
-		postUser(w, r)
+		TakeUser(w, r)
 		fmt.Println(user)
 		err = InsertUser(db, user)
 		if err != nil{
@@ -75,7 +75,7 @@ func handleUser(w http.ResponseWriter, r *http.Request) {
 			log.Fatal(err)
 		}
 		log.Println("CONECTED")
-		postUser(w, r)
+		TakeUser(w, r)
 		err = DeleteUser(db, user)
 		if err != nil{
 			log.Fatal("NOT DELETE")
@@ -96,7 +96,7 @@ func getUser(w http.ResponseWriter, r *http.Request) { // Вывод на сер
 	w.Write(resp)
 }
 
-func postUser(w http.ResponseWriter, r *http.Request) User{ // Размещение юзера через сервер
+func TakeUser(w http.ResponseWriter, r *http.Request) User{ // Размещение юзера через сервер
 	reqBytes, err := io.ReadAll(r.Body)
 	if err != nil{
 		w.WriteHeader(http.StatusBadRequest)

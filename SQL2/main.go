@@ -3,11 +3,8 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
-<<<<<<< HEAD
 	"fmt"
 	"io"
-=======
->>>>>>> 7ed5ed04f956949b7843171ec9cbf12046d7202e
 	"log"
 	"net/http"
 
@@ -23,10 +20,6 @@ type User struct{
 }
 var users []User
 func main(){
-<<<<<<< HEAD
-=======
-
->>>>>>> 7ed5ed04f956949b7843171ec9cbf12046d7202e
 	http.HandleFunc("/user", handleUser)
 	http.ListenAndServe("localhost:8080", nil)
 
@@ -41,26 +34,8 @@ func main(){
 func handleUser(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-<<<<<<< HEAD
 		db := PingDB()
 		users, _ = GetUsers(db)
-=======
-		connect := "host=127.0.0.1 port=5432 user=postgres dbname=users_log sslmode=disable password=goLANG"
-		db, err := sql.Open("postgres", connect)
-		if err != nil{
-			log.Fatal(err)
-		}
-		defer db.Close()
-	
-		if err := db.Ping(); err != nil{
-			log.Fatal(err)
-		}
-		users, err = GetUsers(db)
-		if err != nil{
-			log.Fatal(err)
-		}
-		log.Println("CONECTED")
->>>>>>> 7ed5ed04f956949b7843171ec9cbf12046d7202e
 		getUser(w, r)
 	case http.MethodPost:
 		db := PingDB()

@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -22,22 +21,6 @@ var users []User
 
 func main(){
 
-	connect := "host=127.0.0.1 port=5432 user=postgres dbname=users_log sslmode=disable password=goLANG"
-	db, err := sql.Open("postgres", connect)
-	if err != nil{
-		log.Fatal(err)
-	}
-	defer db.Close()
-
-	if err := db.Ping(); err != nil{
-		log.Fatal(err)
-	}
-	users, err = GetUsers(db)
-	if err != nil{
-		log.Fatal(err)
-	}
-	fmt.Println("CONECTED")
-
 	http.HandleFunc("/user", handleUser)
 	http.ListenAndServe("localhost:8080", nil)
 
@@ -52,6 +35,21 @@ func main(){
 func handleUser(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
+		connect := "host=127.0.0.1 port=5432 user=postgres dbname=users_log sslmode=disable password=goLANG"
+		db, err := sql.Open("postgres", connect)
+		if err != nil{
+			log.Fatal(err)
+		}
+		defer db.Close()
+	
+		if err := db.Ping(); err != nil{
+			log.Fatal(err)
+		}
+		users, err = GetUsers(db)
+		if err != nil{
+			log.Fatal(err)
+		}
+		log.Println("CONECTED")
 		getUser(w, r)
 	default:
 		w.WriteHeader(http.StatusBadRequest)

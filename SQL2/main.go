@@ -19,6 +19,7 @@ type User struct{
 	PASSWORD string `json:"password"`
 }
 var users []User
+var user User
 func main(){
 	http.HandleFunc("/user", handleUser)
 	http.ListenAndServe("localhost:8080", nil)
@@ -34,28 +35,28 @@ func main(){
 func handleUser(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		connect := "host=127.0.0.1 port=5432 user=postgres dbname=users_log sslmode=disable password=goLANG"
-		db, err := sql.Open("postgres", connect)
-		if err != nil{
-			log.Fatal(err)
-		}
-		defer db.Close()
-	
-		if err := db.Ping(); err != nil{
-			log.Fatal(err)
-		}
+		db, err := PingDB()
+		log.Println("CONECTED")
 		users, err = GetUsers(db)
 		if err != nil{
 			log.Fatal(err)
 		}
 		log.Println("CONECTED")
 		getUser(w, r)
+	case http.MethodPost:
+		db, err := PingDB()
+		log.Println("CONECTED")
+		postUser(w, r)
+		err = InsertUser(db, user)
+		if err != nil{
+			log.Fatal(err)
+		}
 	default:
 		w.WriteHeader(http.StatusBadRequest)
 	}
 }
 
-func getUser(w http.ResponseWriter, r *http.Request) {
+func getUser(w http.ResponseWriter, r *http.Request) { // Вывод на сервер Юзера
 	resp, err := json.Marshal(users)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -64,7 +65,7 @@ func getUser(w http.ResponseWriter, r *http.Request) {
 	w.Write(resp)
 }
 
-func postUser(w http.ResponseWriter, r *http.Request){
+func postUser(w http.ResponseWriter, r *http.Request) User{ // Размещение юзера через сервер
 	reqBytes, err := io.ReadAll(r.Body)
 	if err != nil{
 		w.WriteHeader(http.StatusBadRequest)
@@ -73,10 +74,10 @@ func postUser(w http.ResponseWriter, r *http.Request){
 	if err = json.Unmarshal(reqBytes, &user); err != nil{
 		w.WriteHeader(http.StatusBadRequest)
 	}
-	users = append(users, user)
+	return user
 }
 
-func GetUsers(db *sql.DB) ([]User, error){
+func GetUsers(db *sql.DB) ([]User, error){ // Получение ВСЕХ Юзеров в БД
 	rows, err := db.Query("SELECT * FROM user_data")
 	if err != nil{
 		log.Fatal(err)
@@ -101,8 +102,8 @@ func GetUsers(db *sql.DB) ([]User, error){
 
 	return users, nil
 }
-
-func GetUser(db *sql.DB, id int) ([]User, error){
+ 
+func GetUser(db *sql.DB, id int) ([]User, error){ //  Получение Юзера в БД
 	rows, err := db.Query("SELECT * FROM user_data where id = $1", id)
 	if err != nil{
 		log.Fatal(err)
@@ -128,16 +129,17 @@ func GetUser(db *sql.DB, id int) ([]User, error){
 	return users, nil
 }
 
-func InsertUser(db *sql.DB, u User) error {
+func InsertUser(db *sql.DB, u User) error { // Добавление Юзера в БД
 	_, err := db.Exec("INSERT INTO user_data (first_name, second_name, email, password) VALUES ($1, $2, $3, $4)", u.ID, u.FIRST_NAME, u.SECOND_NAME, u.EMAIL, u.PASSWORD)
 	if err != nil{
 		log.Fatal("NOT INSERT USER")
 		return err
 	}
+	log.Println("ADDED USER")
 	return err
 }
 
-func PingDB() *sql.DB{
+func PingDB() (*sql.DB, error){
 	connect := "host=127.0.0.1 port=5432 user=postgres dbname=users_log sslmode=disable password=goLANG"
 	db, err := sql.Open("postgres", connect)
 	if err != nil{
@@ -148,7 +150,5 @@ func PingDB() *sql.DB{
 	if err := db.Ping(); err != nil{
 		log.Fatal(err)
 	}
-	fmt.Println("CONECTED")
-	return db
+	return db, err
 }
-

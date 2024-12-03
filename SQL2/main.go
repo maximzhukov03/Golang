@@ -23,13 +23,6 @@ var user User
 func main(){
 	http.HandleFunc("/user", handleUser)
 	http.ListenAndServe("localhost:8080", nil)
-
-	// users, err := GetUsers(db)
-	// if err != nil{
-	// 	log.Fatal(err)
-	// }
-	// fmt.Println(users)
-
 }
 
 func handleUser(w http.ResponseWriter, r *http.Request) {

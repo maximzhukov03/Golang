@@ -9,11 +9,11 @@ type userRepository struct {
 	db *sql.DB
 }
 
-func NewUserRepository(db *sql.DB) domain.UserRepository {
+func NewUserRepository(db *sql.DB) domain.UserRepository { //создание струткуры баззы данных
 	return &userRepository{db: db}
 }
 
-func (r *userRepository) GetAll() ([]domain.User, error) {
+func (r *userRepository) GetAll() ([]domain.User, error) { // Метод для получения всех юзеров
 	rows, err := r.db.Query("SELECT * FROM user_data")
 	if err != nil {
 		return nil, err

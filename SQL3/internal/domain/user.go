@@ -1,9 +1,5 @@
 package domain
 
-import (
-	"encoding/json"
-)
-
 // User представляет сущность пользователя
 type User struct {
 	ID         int    `json:"id"`

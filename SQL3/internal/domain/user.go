@@ -1,7 +1,6 @@
 package domain
 
 import (
-	"encoding/json"
 )
 
 // User представляет сущность пользователя

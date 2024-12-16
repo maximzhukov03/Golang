@@ -57,19 +57,16 @@ func main() {
 		}
 	}()
 
-	go func() {
-		signals := make(chan os.Signal, 1)
-		signal.Notify(signals, syscall.SIGTERM, syscall.SIGINT)
-		<-signals
+	signals := make(chan os.Signal, 1)
+	signal.Notify(signals, syscall.SIGTERM, syscall.SIGINT)
+	<-signals
 
-		ctx, cancel := context.WithTimeout(context.TODO(), 15*time.Second)
-		defer cancel()
-		if err := srv.Shutdown(ctx); err != nil {
-			logger.Fatalw("failed to shutdown server", "err", err, "http-addr", cfg.HttpAddr)
-		}
-		logger.Infow("buy!")
-	}()
-
+	ctx, cancel := context.WithTimeout(context.TODO(), 15*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		logger.Fatalw("failed to shutdown server", "err", err, "http-addr", cfg.HttpAddr)
+	}
+	logger.Infow("buy!")
 	// shutdown := make(chan struct{})
 	// go func(){
 	// 	signals := make(chan os.Signal, 1)
@@ -79,4 +76,5 @@ func main() {
 	// }()
 
 	// <-shutdown
+	// Ожидание сигнала завершения
 }

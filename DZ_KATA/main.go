@@ -2,21 +2,17 @@ package main
 
 import (
 	"fmt"
-	"github.com/icrowley/fake"
+	"github.com/mattevans/dinero"
 	"os"
+	"time"
 )
 
-func main() {
-	fakeGen := GenerateFakeData()
-	fmt.Println(fakeGen)
-	os.Exit(0)
+var APIKey = "ВСТАВЬТЕ_СЮДА_ВАШ_КЛЮЧ"
+
+func currencyPairRate(from string, to string, amount float64) float64 {
+
 }
 
-func GenerateFakeData() string {
-	Name := fake.FullName()
-	Address := fake.StreetAddress()
-	Phone := fake.Phone()
-	Email := fake.EmailAddress()
-	fakeGen := fmt.Sprintf("Name: %s\nAddress: %s\nPhone: %s\nEmail: %s", Name, Address, Phone, Email)
-	return fakeGen
+func main() {
+	os.Exit(0)
 }

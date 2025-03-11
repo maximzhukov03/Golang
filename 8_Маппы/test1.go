@@ -10,5 +10,4 @@ func test1(){
 	for i := 1; i <= len(users); i++{
 		fmt.Println(users[i])
 	}
-
 }

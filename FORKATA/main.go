@@ -2,31 +2,28 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"strings"
+	"time"
 )
 
-
-func CountWordsInText(txt string, words []string) map[string]int {
-    result := make(map[string]int)
-	txtLower := strings.ToLower(txt)
-	txtSlice := strings.Fields(txtLower)
-	for _, word := range txtSlice {
-		for _, w := range words {
-			if word == w {
-				result[w]++
-			}
+func generateActivationKey() string {
+	chars := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+	rand.Seed(time.Now().UnixNano())
+	passwordList := []string{}
+	var b strings.Builder
+	for j := 0; j < 4; j++{
+		for i := 0; i < 4; i++ {
+			b.WriteRune(rune(chars[rand.Intn(len(chars))]))
+			fmt.Println(b.String())
 		}
+		passwordList = append(passwordList, b.String())
+		b = strings.Builder{}
 	}
-	return result
+	return strings.Join(passwordList, "-")
 }
 
 func main() {
-	txt := `Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec a diam lectus. Sed sit amet ipsum mauris. 
-        Maecenas congue ligula ac quam viverra nec consectetur ante hendrerit. Donec et mollis dolor. 
-        Praesent et diam eget libero egestas mattis sit amet vitae augue.`
-	words := []string{"sit", "amet", "lorem"}
-
-	result := CountWordsInText(txt, words)
-
-	fmt.Println(result) // map[amet:2 lorem:1 sit:3]
+	activationKey := generateActivationKey()
+	fmt.Println(activationKey) // UQNI-NYSI-ZVYB-ZEFQ
 }

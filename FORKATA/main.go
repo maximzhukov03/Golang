@@ -2,28 +2,35 @@ package main
 
 import (
 	"fmt"
-	"math/rand"
-	"strings"
-	"time"
 )
 
-func generateActivationKey() string {
-	chars := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-	rand.Seed(time.Now().UnixNano())
-	passwordList := []string{}
-	var b strings.Builder
-	for j := 0; j < 4; j++{
-		for i := 0; i < 4; i++ {
-			b.WriteRune(rune(chars[rand.Intn(len(chars))]))
-			fmt.Println(b.String())
-		}
-		passwordList = append(passwordList, b.String())
-		b = strings.Builder{}
-	}
-	return strings.Join(passwordList, "-")
+// Пример кода, если необходимо
+func generateMathString(operands []int, operator string) string {
+    res := operands[0]
+    stringMath := fmt.Sprintf("%d", res) // Начинаем с первого операнда
+
+    for _, operand := range operands[1:] {
+        switch operator {
+        case "+":
+            res += operand
+        case "-":
+            res -= operand
+        case "*":
+            res *= operand
+        case "/":
+            if operand != 0 {
+                res /= operand
+            } else {
+                return "Ошибка"
+            }
+        }
+        stringMath += fmt.Sprintf(" %s %d", operator, operand) // Добавляем оператор и операнд
+    }
+
+    return fmt.Sprintf("%s = %d", stringMath, res) // Возвращаем строку с результатом
 }
 
+// Пример результата выполнения программы:
 func main() {
-	activationKey := generateActivationKey()
-	fmt.Println(activationKey) // UQNI-NYSI-ZVYB-ZEFQ
+    fmt.Println(generateMathString([]int{2, 4, 6}, "+")) // "2 + 4 + 6 = 12"
 }

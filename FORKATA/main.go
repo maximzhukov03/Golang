@@ -2,35 +2,27 @@ package main
 
 import (
 	"fmt"
+	"regexp"
 )
 
-// Пример кода, если необходимо
-func generateMathString(operands []int, operator string) string {
-    res := operands[0]
-    stringMath := fmt.Sprintf("%d", res) // Начинаем с первого операнда
-
-    for _, operand := range operands[1:] {
-        switch operator {
-        case "+":
-            res += operand
-        case "-":
-            res -= operand
-        case "*":
-            res *= operand
-        case "/":
-            if operand != 0 {
-                res /= operand
-            } else {
-                return "Ошибка"
-            }
-        }
-        stringMath += fmt.Sprintf(" %s %d", operator, operand) // Добавляем оператор и операнд
-    }
-
-    return fmt.Sprintf("%s = %d", stringMath, res) // Возвращаем строку с результатом
+func main() {
+	email := "test@example.com"
+	valid := isValidEmail(email)
+	if valid {
+		fmt.Printf("%s является валидным email-адресом\n", email)
+	} else {
+		fmt.Printf("%s не является валидным email-адресом\n", email)
+	}
 }
 
-// Пример результата выполнения программы:
-func main() {
-    fmt.Println(generateMathString([]int{2, 4, 6}, "+")) // "2 + 4 + 6 = 12"
+func isValidEmail(email string) bool {
+	re := regexp.MustCompile(`[@]`)
+	re2 := regexp.MustCompile("\\.com")
+	matches := re.MatchString(email)
+	matches2 := re2.MatchString(email)
+	if matches && matches2{
+		return true
+	} else {
+		return false
+	}
 }

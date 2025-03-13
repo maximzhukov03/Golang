@@ -1,32 +1,47 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
-	"io"
-	"os"
-	"strings"
 )
 
-func WriteFile(data io.Reader, fd io.Writer) error {
-	err := WriteFile(data, fd)
+func getJSON(data []User) (string, error) {
+	dataJson, err := json.Marshal(data)
 	if err != nil{
-		return err
+		return "", err
 	}
-	return nil
+
+	return string(dataJson), nil
 }
 
+type User struct {
+    Name     string    `json:"name"`
+    Age      int       `json:"age"`
+    Comments []Comment `json:"comments"`
+}
+
+type Comment struct {
+    Text string `json:"text"`
+}
 
 func main() {
-    filePath := "course1/13.popular_package/7.package_os/task1.13.7.2/file.txt"
-    // Открываем файл для записи
-    file, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
-    if err != nil {
-        return
-    }
-    defer file.Close() // отложенная функция закрытия дескриптора файла
-    
-    err = WriteFile(strings.NewReader("Hello, World!"), file)
-    if err != nil {
-        fmt.Println("Ошибка при записи файла:", err)
-    }
+	data := []User{
+		{
+			Name:  "Иван",
+			Age:   30,
+			Comments: []Comment{
+				{Text: "Привет"},
+				{Text: "Как дела"},
+			},
+		},
+
+	}
+
+	dataJson, err := getJSON(data)
+	if err != nil{
+		fmt.Println(err)
+	}
+
+	fmt.Println(dataJson)
+	
 }

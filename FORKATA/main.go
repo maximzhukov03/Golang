@@ -78,7 +78,7 @@ func InsertUser(user User) error{
 	}
 	defer db.Close()
 
-	_, err = prepareQuery("insert", "users", user).(*squirrel.UpdateBuilder).RunWith(db).Query()
+	_, err = prepareQuery("insert", "users", user).(*squirrel.InsertBuilder).RunWith(db).Exec()
 	if err != nil{
 		return err
 	}
@@ -95,7 +95,12 @@ func SelectUser(userID int) (User, error){
 	user := User{
 		ID: userID,
 	}
-	_, err = prepareQuery("select", "users", user).(*squirrel.UpdateBuilder).RunWith(db).Query()
+	row, err := prepareQuery("select", "users", user).(*squirrel.SelectBuilder).RunWith(db).Query()
+	if err != nil{
+		return user, err
+	}
+
+	err = row.Scan(&user.ID, &user.Name, &user.Age)
 	if err != nil{
 		return user, err
 	}
@@ -109,7 +114,7 @@ func UpdateUser(user User) error{
 	}
 	defer db.Close()
 
-	_, err = prepareQuery("uodate", "users", user).(*squirrel.UpdateBuilder).RunWith(db).Exec()
+	_, err = prepareQuery("update", "users", user).(*squirrel.UpdateBuilder).RunWith(db).Exec()
 	if err != nil{
 		return err
 	}
@@ -126,7 +131,7 @@ func DeleteUser(userID int) error{
 	user := User{
 		ID: userID,
 	}
-	_, err = prepareQuery("delete", "users", user).(*squirrel.UpdateBuilder).RunWith(db).Query()
+	_, err = prepareQuery("delete", "users", user).(*squirrel.DeleteBuilder).RunWith(db).Exec()
 	if err != nil{
 		return err
 	}

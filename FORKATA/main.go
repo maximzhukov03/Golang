@@ -109,7 +109,7 @@ func UpdateUser(user User) error{
 	}
 	defer db.Close()
 
-	_, err = prepareQuery("uodate", "users", user).(*squirrel.UpdateBuilder).RunWith(db).Query()
+	_, err = prepareQuery("uodate", "users", user).(*squirrel.UpdateBuilder).RunWith(db).Exec()
 	if err != nil{
 		return err
 	}

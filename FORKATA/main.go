@@ -3,8 +3,6 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"os/user"
-
 	"github.com/Masterminds/squirrel"
 	_ "github.com/mattn/go-sqlite3"
 )

@@ -6,21 +6,23 @@ import (
 	"github.com/Masterminds/squirrel"
 	_ "github.com/mattn/go-sqlite3"
 )
+
 type User struct {
-    ID   int    `json:"id"`
-    Name string `json:"name"`
-    Age  int    `json:"age"`
+	ID       int
+	Username string
+	Email    string
 }
 
 
-func CreateUserTable(db *sql.DB) error {
+
+func CreateUserTable() error {
 	db, err := sql.Open("sqlite3", "users.db")
     if err != nil {
         fmt.Println(err)
     }
     defer db.Close()
 
-	query := `CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, name TEXT NOT NULL, age INT NOT NULL);`
+	query := `CREATE TABLE IF NOT EXISTS users (ID SERIAL PRIMARY KEY, Username TEXT NOT NULL, Email INT NOT NULL);`
 
 	_, err = db.Exec(query)
 	if err != nil{
@@ -30,7 +32,7 @@ func CreateUserTable(db *sql.DB) error {
 	return nil
 }
 
-func InsertUser(db *sql.DB, user User) error {
+func InsertUser(user User) error {
 	db, err := sql.Open("sqlite3", "users.db")
     if err != nil {
         fmt.Println(err)
@@ -49,27 +51,29 @@ func InsertUser(db *sql.DB, user User) error {
 	return nil
 }
 
-func SelectUser(db *sql.DB, id int) (User, error) {
+func SelectUser(userID int) (User, error) {
 	db, err := sql.Open("sqlite3", "users.db")
     if err != nil {
         fmt.Println(err)
     }
     defer db.Close()
 
-	var user User
+	user := User{
+		ID: userID,
+	}
 	query, args, err := PrepareQuery("select", "users", user)
 	if err != nil{
 		return user, err
 	}
 	row := db.QueryRow(query, args...)
-	err = row.Scan(&user.ID, &user.Name, &user.Age)
+	err = row.Scan(&user.ID, &user.Username, &user.Email)
 	if err != nil{
 		return user, err
 	}
 	return user, nil
 }
 
-func UpdateUser(db *sql.DB, user User) error {
+func UpdateUser(user User) error {
 	db, err := sql.Open("sqlite3", "users.db")
     if err != nil {
         fmt.Println(err)
@@ -87,9 +91,9 @@ func UpdateUser(db *sql.DB, user User) error {
 	return nil
 }
 
-func DeleteUser(db *sql.DB, id int) error {
+func DeleteUser(userID int) error {
 	user := User{
-		ID: id,
+		ID: userID,
 	}
 	db, err := sql.Open("sqlite3", "users.db")
     if err != nil {
@@ -113,16 +117,16 @@ func PrepareQuery(operation string, table string, user User) (string, []interfac
 
 	switch operation {
 	case "insert":
-		return sq.Insert(table).Columns("name", "age").Values(user.Name, user.Age).ToSql()
+		return sq.Insert(table).Columns("Username", "Email").Values(user.Username, user.Email).ToSql()
 
 	case "update":
-		return sq.Update(table).Set("name", user.Name).Set("age", user.Age).Where(squirrel.Eq{"id": user.ID}).ToSql()
+		return sq.Update(table).Set("Username", user.Username).Set("Email", user.Email).Where(squirrel.Eq{"ID": user.ID}).ToSql()
 
 	case "delete":
-		return sq.Delete(table).Where(squirrel.Eq{"id": user.ID}).ToSql()
+		return sq.Delete(table).Where(squirrel.Eq{"ID": user.ID}).ToSql()
 
 	case "select":
-		return sq.Select("id", "name", "age").From(table).Where(squirrel.Eq{"id": user.ID}).ToSql()
+		return sq.Select("ID", "Username", "Email").From(table).Where(squirrel.Eq{"ID": user.ID}).ToSql()
 
 	default:
 		return "", nil, fmt.Errorf("неизвестная операция: %s", operation)

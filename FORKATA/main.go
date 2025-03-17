@@ -1,43 +1,45 @@
 package main
 
 import (
-	//"fmt"
 	"fmt"
+
 	"time"
 )
 
-func timeout(timeout time.Duration) func() bool{
-	ch := make(chan bool, 1)
-	
-	go func(){
-		time.Sleep(timeout)
-		ch <- true
+func main() {
+	stop := make(chan bool)
+
+	go func() {
+		time.Sleep(2 * time.Second)
+		fmt.Println("Горутина завершила работу")
+		stop <- true
 	}()
 
-	return func() bool{
-		select{
-		case <- ch:
-			return true
-		case <- time.After(timeout):
-			return false
-		}
+	timer := time.NewTimer(5 * time.Second)
+
+	data := NotifyOnTimer(timer, stop)
+
+	for v := range data {
+		fmt.Println(v)
 	}
+	/*
+        Результат работы программы:
+        Горутина завершила работу
+        Горутина завершила работу раньше, чем таймер сработал
+	*/
 }
-// Пример использования функции timeout
-func main() {
-    timeoutFunc := timeout(3 * time.Second)
-    since := time.NewTimer(3050 * time.Millisecond)
-    for {
-        select {
-        case <-since.C:
-            fmt.Println("Функция не выполнена вовремя")
-            return
-        default:
-            if timeoutFunc() {
-                fmt.Println("Функция выполнена вовремя")
-                return
-            }
-        }
-    }
+
+func NotifyOnTimer(timer *time.Timer, stop chan bool) <-chan string {
+	ch := make(chan string)
+
+	go func(){
+		select{
+		case <- stop:
+			ch <- "Горутина завершила работу раньше, чем таймер сработал"
+		case <- timer.C:
+			ch <- "Произошло срабатывание таймера"
+		}
+		close(ch)
+	}()
+	return ch
 }
-// Output: Функция выполнена вовремя

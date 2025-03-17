@@ -2,44 +2,35 @@ package main
 
 import (
 	"fmt"
-
 	"time"
 )
 
 func main() {
-	stop := make(chan bool)
+	// Создаем новый тикер с интервалом 1 секунда
+	ticker := time.NewTicker(1 * time.Second)
 
-	go func() {
-		time.Sleep(2 * time.Second)
-		fmt.Println("Горутина завершила работу")
-		stop <- true
-	}()
-
-	timer := time.NewTimer(5 * time.Second)
-
-	data := NotifyOnTimer(timer, stop)
+	data := NotifyEvery(ticker, 5*time.Second, "Таймер сработал")
 
 	for v := range data {
 		fmt.Println(v)
 	}
-	/*
-        Результат работы программы:
-        Горутина завершила работу
-        Горутина завершила работу раньше, чем таймер сработал
-	*/
+
+	fmt.Println("Программа завершена")
 }
 
-func NotifyOnTimer(timer *time.Timer, stop chan bool) <-chan string {
+func NotifyEvery(ticker *time.Ticker, d time.Duration, message string) <-chan string {
 	ch := make(chan string)
-
 	go func(){
-		select{
-		case <- stop:
-			ch <- "Горутина завершила работу раньше, чем таймер сработал"
-		case <- timer.C:
-			ch <- "Произошло срабатывание таймера"
+		defer close(ch)
+		stopTimer := time.After(d)
+		for{
+			select{
+			case <- ticker.C:
+				ch <- message
+			case <- stopTimer:
+				return
+			}
 		}
-		close(ch)
 	}()
 	return ch
 }

@@ -2,35 +2,19 @@ package main
 
 import (
 	"fmt"
-	"time"
+	"sync"
 )
 
 func main() {
-	// Создаем новый тикер с интервалом 1 секунда
-	ticker := time.NewTicker(1 * time.Second)
+	var wg sync.WaitGroup
 
-	data := NotifyEvery(ticker, 5*time.Second, "Таймер сработал")
-
-	for v := range data {
-		fmt.Println(v)
+	for i := 0; i < 5; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			fmt.Println(i)
+		}()
 	}
 
-	fmt.Println("Программа завершена")
-}
-
-func NotifyEvery(ticker *time.Ticker, d time.Duration, message string) <-chan string {
-	ch := make(chan string)
-	go func(){
-		defer close(ch)
-		stopTimer := time.After(d)
-		for{
-			select{
-			case <- ticker.C:
-				ch <- message
-			case <- stopTimer:
-				return
-			}
-		}
-	}()
-	return ch
+	wg.Wait()
 }

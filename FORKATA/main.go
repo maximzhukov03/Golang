@@ -2,47 +2,38 @@ package main
 
 import (
 	"fmt"
-	"os"
-	"time"
 )
 
-var ch = make(chan int)
+type sema chan struct{}
 
-const (
-	one = iota + 1
-	two
-	three
-	four
-	five
-)
+func New(n int) sema {
+	return make(sema, n)
+}
+
+func (s sema) Inc(k int) {
+	for i := 0; i < k; i++{
+		s <- struct{}{}
+	}
+}
+
+func (s sema) Dec(k int) {
+	for i := 0; i < k; i++{
+		<-s
+	}
+}
 
 func main() {
-	numbers := []int{one, two, three, four, five}
-	storeNumbers(numbers)
-	print(ch)
-}
+	numbers := []int{1, 2, 3, 4, 5}
+	n := len(numbers)
 
-func print(data chan int) {
-	if len(os.Getenv("DEBUG")) != 0 {
-		return
-	}
-	go func() {
-		time.Sleep(1 * time.Second)
-		close(ch)
-	}()
-	for v := range data {
-		fmt.Println(v)
-	}
-}
+	sem := New(n)
 
-func storeNumbers(numbers []int) {
 	for _, num := range numbers {
-		go func() { // исправить, но не убирать анонимную функцию
-			go write(num)
-		}()
+		go func(n int) {
+			fmt.Println(n)
+			sem.Inc(1)
+		}(num)
 	}
-}
 
-func write(n int) {
-	ch <- n
+	sem.Dec(n)
 }

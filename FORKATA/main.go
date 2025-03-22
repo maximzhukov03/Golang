@@ -1,25 +1,21 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
 func main() {
-    a, b := 8, 13
-    fmt.Println(*testDefer(&a, &b))
+	ch := make(chan string, 1)
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println(r)
+		}
+	}()
+	myPanic(ch)
+
+	fmt.Println(<-ch)
 }
 
-func testDefer(a, b *int) *int {
-    var c int
-    defer func() {
-		c = multiply(*a, *b)
-    }()
-    c = sum(*a, *b)
-    return &c
-}
-
-func sum(a, b int) int {
-    return a + b
-}
-
-func multiply(a, b int) int {
-    return a * b
+func myPanic(ch chan string) {
+	panic("my panic message")
 }

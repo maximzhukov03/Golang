@@ -1,39 +1,25 @@
 package main
 
-import (
-	"fmt"
-)
-
-type sema chan struct{}
-
-func New(n int) sema {
-	return make(sema, n)
-}
-
-func (s sema) Inc(k int) {
-	for i := 0; i < k; i++{
-		s <- struct{}{}
-	}
-}
-
-func (s sema) Dec(k int) {
-	for i := 0; i < k; i++{
-		<-s
-	}
-}
+import "fmt"
 
 func main() {
-	numbers := []int{1, 2, 3, 4, 5}
-	n := len(numbers)
+    a, b := 8, 13
+    fmt.Println(*testDefer(&a, &b))
+}
 
-	sem := New(n)
+func testDefer(a, b *int) *int {
+    var c int
+    defer func() {
+		c = multiply(*a, *b)
+    }()
+    c = sum(*a, *b)
+    return &c
+}
 
-	for _, num := range numbers {
-		go func(n int) {
-			fmt.Println(n)
-			sem.Inc(1)
-		}(num)
-	}
+func sum(a, b int) int {
+    return a + b
+}
 
-	sem.Dec(n)
+func multiply(a, b int) int {
+    return a * b
 }

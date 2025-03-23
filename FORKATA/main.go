@@ -1,20 +1,18 @@
 package main
 
 import (
-	"sync/atomic"
+	"fmt"
+	"time"
 )
 
-// Пример структуры счетчика
-type Counter struct {
-    count int64
-}
+func main() {
 
-// Функция для увеличения значения счетчика на 1
-func (c *Counter) Increment() {
-    atomic.AddInt64(&c.count, 1)
-}
-
-// Функция для получения текущего значения счетчика
-func (c *Counter) GetCount() int64 {
-    return c.count
+	for {
+		time.Sleep(1 * time.Second)
+		fmt.Print("\033[H\033[2J") // очистка терминала
+		timeNow := time.Now().Format("15:04:05")
+		timeDate := time.Now().Format("2006-01-02")
+		// dateNow := time.Date()
+		fmt.Printf("%s\n%s", timeNow, timeDate)
+	}
 }

@@ -1,41 +1,40 @@
 package main
 
 import (
-	"context"
 	"fmt"
-	"time"
+	"sync"
 )
 
-func main() {
-	var res string
-	res = contextWithTimeout(context.Background(), 1*time.Second, 2*time.Second)
-	fmt.Println(res)
-	res = contextWithTimeout(context.Background(), 2*time.Second, 1*time.Second)
-	fmt.Println(res)
-}
-
-func contextWithTimeout(ctx context.Context, contextTimeout time.Duration, timeAfter time.Duration) string {
-	ctx, cancel := context.WithTimeout(ctx, contextTimeout)
-	defer cancel()
-	timer := time.NewTimer(timeAfter)
-	defer timer.Stop()
-	select{
-	case <-ctx.Done():
-		return "превышено время ожидания"
-	case <-timer.C:
-		return "превышено время ожидания контекста"
+func waitGroupExample(goroutines ...func() string) string {
+	var wg sync.WaitGroup
+	res := make(chan string, len(goroutines))
+	for _, goRout := range goroutines{
+		wg.Add(1)
+		go func(goRout func() string){
+			defer wg.Done()
+			res <- goRout()
+		}(goRout)
 	}
+	wg.Wait()
+	close(res)
+
+	var stringOutput string
+	for i := range res{
+		stringOutput += fmt.Sprintf("%s\n", i)
+	}
+	return stringOutput
 }
 
-// func contextWithDeadline(ctx context.Context, contextDeadline time.Duration, timeAfter time.Duration) string {
-// 	ctx, cancel := context.WithDeadline(ctx, time.Now().Add(contextDeadline))
-// 	defer cancel()
-// 	timer := time.NewTimer(timeAfter)
-// 	defer timer.Stop()
-//     select {
-//     case <-ctx.Done():
-//         return "context deadline exceeded"
-//     case <-timer.C:
-//         return "time after exceeded"
-//     }
-// }
+func main() {
+	count := 1000
+	goroutines := make([]func() string, count)
+
+	for i := 0; i < count; i++ {
+		j := i
+		goroutines[i] = func() string {
+			return fmt.Sprintf("goroutine %d", j)
+		}
+	}
+
+	fmt.Println(waitGroupExample(goroutines...))
+}

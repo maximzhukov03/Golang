@@ -1,21 +1,31 @@
 package main
 
 import (
-	"fmt"
+	"context"
+	"time"
 )
 
 func main() {
-	ch := make(chan string, 1)
-	defer func() {
-		if r := recover(); r != nil {
-			fmt.Println(r)
-		}
-	}()
-	myPanic(ch)
-
-	fmt.Println(<-ch)
+	var res string
+	res = contextWithDeadline(context.Background(), 1*time.Second, 2*time.Second)
+	println(res)
+	res = contextWithDeadline(context.Background(), 2*time.Second, 1*time.Second)
+	println(res)
+	/* Output:
+	context deadline exceeded
+	time after exceeded
+	*/
 }
 
-func myPanic(ch chan string) {
-	panic("my panic message")
+func contextWithDeadline(ctx context.Context, contextDeadline time.Duration, timeAfter time.Duration) string {
+	ctx, cancel := context.WithDeadline(ctx, time.Now().Add(contextDeadline))
+	defer cancel()
+	timer := time.NewTimer(timeAfter)
+	defer timer.Stop()
+    select {
+    case <-ctx.Done():
+        return "context deadline exceeded"
+    case <-timer.C:
+        return "time after exceeded"
+    }
 }

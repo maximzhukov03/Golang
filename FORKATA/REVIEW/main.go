@@ -1,3 +1,213 @@
+// // написать функцию, котораю мержит 4 канала в один
+// package main
+
+// import (
+// 	"fmt"
+// 	"sync"
+// )
+
+// func merge(ch1, ch2, ch3, ch4 chan int) chan int{
+//     wg := sync.WaitGroup{}
+//     chMerge := make(chan int)
+//     wg.Add(4)
+//     go func(){
+//         defer wg.Done()
+//         for elem := range ch1{
+//             chMerge <- elem
+//         }
+//     }()
+//     go func(){
+//         defer wg.Done()
+//         for elem := range ch2{
+//             chMerge <- elem
+//         }
+//     }()
+//     go func(){
+//         defer wg.Done()
+//         for elem := range ch3{
+//             chMerge <- elem
+//         }
+//     }()
+//     go func(){
+//         defer wg.Done()
+//         for elem := range ch4{
+//             chMerge <- elem
+//         }
+//     }()
+//     go func() {
+//         wg.Wait()
+//         close(chMerge)
+//     }()
+//     return chMerge
+// }
+
+// func main(){
+//     ch1 := make(chan int)
+//     ch2 := make(chan int)
+//     ch3 := make(chan int)
+//     ch4 := make(chan int)
+
+//     go func(){
+//         for i := 1; i < 6; i++{
+//             ch1 <- i
+//         }  
+//         close(ch1)
+//     }()
+//     go func(){
+//         for i := 6; i < 11; i++{
+//             ch2 <- i
+//         } 
+//         close(ch2)
+//     }()
+//     go func(){
+//         for i := 11; i < 16; i++{
+//             ch3 <- i
+//         }  
+//         close(ch3)
+//     }()
+//     go func(){
+//         for i := 16; i < 21; i++{
+//             ch4 <- i
+//         } 
+//         close(ch4)
+//     }()
+    
+    
+//     ch := merge(ch1, ch2, ch3, ch4)
+
+//     for elem := range ch{
+//         fmt.Println(elem)
+//     }
+
+// }
+
+// // написать функцию которая пишет в канал N количество элементов
+// package main
+
+// import (
+// 	"fmt"
+// )
+
+// func writer(ch chan interface{}, list []interface{}){
+//     for _, elem := range list{
+//         ch <- elem
+//     }
+//     close(ch)
+// }
+
+// func main(){
+//     ch := make(chan interface{})
+
+//     list := []interface{}{1, 2, "Привет", true}
+    
+//     go writer(ch, list)
+
+//     for elem := range ch{
+//         fmt.Println(elem)
+//     }
+// }
+
+
+// // написать функцию которая пишет в канал N количество элементов
+
+// package main
+
+// import "fmt"
+
+// func writer(ch chan int, N int){
+//     for i := 0; i < N; i++{
+//         ch <- i
+//     }
+//     close(ch)
+// }
+
+// func main(){
+//     ch := make(chan int)
+    
+//     go writer(ch, 5)
+
+//     for elem := range ch{
+//         fmt.Println(elem)
+//     }
+// }
+
+
+// // принимает список чисел, вычисляет их квадраты параллельно в нескольких горутинах и отправляет результаты в выходной канал.
+
+// package main
+
+// import "fmt"
+
+// func square(ch, ch2 chan int){
+//     for elem := range ch{
+//         ch2 <- elem * elem
+//     }
+//     close(ch2)
+// }
+
+
+// func main(){
+//     listInt := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+//     chan1 := make(chan int)
+//     chan2 := make(chan int)
+//     go func(){
+//         for _, elem := range listInt{
+//             chan1 <- elem
+//         }
+//         defer close(chan1)
+//     }()
+
+//     go square(chan1, chan2)
+
+//     for elem := range chan2{
+//         fmt.Println(elem)
+//     }
+// }
+
+
+// Работа со строкой из двух каналов по подсчету символов в строке
+// package main
+
+// import (
+// 	"fmt"
+// )
+
+// func main() {
+// 	chan1 := make(chan string)
+// 	chan2 := make(chan int)
+//     lines := []string{"Я","Ты","Она",}
+// 	go func() {
+// 		for str := range chan1 {
+// 			count := len([]rune(str))
+// 			chan2 <- count
+// 		}
+// 		close(chan2)
+// 	}()
+
+	
+
+// 	go func() {
+// 		for _, line := range lines {
+// 			chan1 <- line
+// 		}
+// 		close(chan1)
+// 	}()
+
+// 	for count := range chan2 {
+// 		fmt.Println(count)
+// 	}
+// }
+
+// #########################################################################################
+// #########################################################################################
+// #########################################################################################
+// #########################################################################################
+// #########################################################################################
+// #########################################################################################
+// #########################################################################################
+// #########################################################################################
+
+
 // package main
 
 // import ()

@@ -1,13 +1,15 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
-	"github.com/brianvoe/gofakeit/v6"
+	"log"
 	"reflect"
 	"strings"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
-// Определение структуры пользователя
 type User struct {
 	ID        int    `db_field:"id" db_type:"SERIAL PRIMARY KEY"`
 	FirstName string `db_field:"first_name" db_type:"VARCHAR(100)"`
@@ -15,23 +17,20 @@ type User struct {
 	Email     string `db_field:"email" db_type:"VARCHAR(100) UNIQUE"`
 }
 
+func (u *User) TableName() string {
+	return "users"
+}
+
 type Tabler interface {
 	TableName() string
 }
 
-func (u User) TableName() string{
-	return "User"
+type SQLGenerator interface {
+	CreateTableSQL(table Tabler) string
+	CreateInsertSQL(model Tabler) string
 }
-
-
 
 type SQLiteGenerator struct{}
-
-// Интерфейс для генерации SQL-запросов
-type SQLGenerator interface {
-	CreateTableSQL(Tabler) string
-	CreateInsertSQL(Tabler) string
-}
 
 func (s *SQLiteGenerator) CreateTableSQL(tab Tabler) string{
 	t := reflect.TypeOf(tab)
@@ -72,66 +71,52 @@ func (s *SQLiteGenerator) CreateInsertSQL(t Tabler) string {
 		dbvalue := val.Field(i).Interface()
 
 		fields = append(fields, dbfield)
-		if reflect.TypeOf(dbvalue).Kind() == reflect.Int {
-			values = append(values, fmt.Sprintf("%d", dbvalue))
-		} else {
-			values = append(values, fmt.Sprintf("'%v'", dbvalue))
-		}
+		values = append(values, fmt.Sprintf("'%v'", dbvalue))
 	}
 
 	sb.WriteString(fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s);", t.TableName(), strings.Join(fields, ", "), strings.Join(values, ", ")))
 	return sb.String()
 }
-type GoFakeitGenerator struct{}
 
-type FakeDataGenerator interface {
-	GenerateFakeUser() User
+type Migrator struct{
+	db *sql.DB
+	sqlGenerator SQLGenerator
 }
 
-func (f *GoFakeitGenerator) GenerateFakeUser() User{
-	u := User{
-		ID: gofakeit.Number(1000, 9999),
-		FirstName: gofakeit.FirstName(),
-		LastName: gofakeit.LastName(),
-		Email: gofakeit.Email(),
+
+func NewMigrator(db *sql.DB, sqlGenerator SQLGenerator) *Migrator {
+	return &Migrator{
+		db:           db,
+		sqlGenerator: sqlGenerator,
 	}
-	return u
 }
 
-func GenerateUserInserts(count int) []string {
-	sqlGenerator := &SQLiteGenerator{}
-	fakeDataGenerator := &GoFakeitGenerator{}
+func (m Migrator) Migrate(models ...Tabler) error{
+	for _, model := range models{
+		tableSQL := m.sqlGenerator.CreateTableSQL(model)
 
-	sqlFinal := []string{}
-	user := User{}
-	sql := sqlGenerator.CreateTableSQL(&user)
-	sqlFinal = append(sqlFinal, sql)
-
-	for i := 0; i < 34; i++ {
-		fakeUser := fakeDataGenerator.GenerateFakeUser()
-		query := sqlGenerator.CreateInsertSQL(&fakeUser)
-		sqlFinal = append(sqlFinal, query)
+		_, err := m.db.Exec(tableSQL)
+		if err != nil{
+			return fmt.Errorf("failed to create table for model %v: %v", model.TableName(), err)
+		}
 	}
-	return sqlFinal
+	return nil
 }
 
+// Основная функция
 func main() {
-	// sqlGenerator := &SQLiteGenerator{}
-	// fakeDataGenerator := &GoFakeitGenerator{}
+	// Подключение к SQLite БД
+	db, err := sql.Open("sqlite3", "file:my_database.db?cache=shared&mode=rwc")
+	if err != nil {
+		log.Fatalf("failed to connect to the database: %v", err)
+	}
 
-	// user := User{}
-	// sql := sqlGenerator.CreateTableSQL(&user)
-	// fmt.Println(sql)
+	YourSQLGeneratorInstance := &SQLiteGenerator{}
+	// Создание мигратора с использованием вашего SQLGenerator
+	migrator := NewMigrator(db, YourSQLGeneratorInstance)
 
-	// for i := 0; i < 34; i++ {
-	// 	fakeUser := fakeDataGenerator.GenerateFakeUser()
-	// 	query := sqlGenerator.CreateInsertSQL(&fakeUser)
-	// 	fmt.Println(query)
-	// }
-	queries := GenerateUserInserts(34)
-
-	// fmt.Println(queries)
-	for _, query := range queries {
-		fmt.Println(query)
+	// Миграция таблицы User
+	if err := migrator.Migrate(&User{}); err != nil {
+		log.Fatalf("failed to migrate: %v", err)
 	}
 }

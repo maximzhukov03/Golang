@@ -91,7 +91,6 @@ func (f *GoFakeitGenerator) GenerateFakeUser() User{
 	}
 	return u
 }
-
 func main() {
 	sqlGenerator := &SQLiteGenerator{}
 	fakeDataGenerator := &GoFakeitGenerator{}

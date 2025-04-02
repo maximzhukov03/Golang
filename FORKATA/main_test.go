@@ -1,62 +1,34 @@
 package main
 
-import("testing")
-func TestCreateTableSQL(t *testing.T) {
-	v := &SQLiteGenerator{}
-	success := false
-	defer func() {
-		r := recover()
-		if r != nil {
-			success = r == "implement me"
-		}
-		if !success {
-			t.Errorf("expected panic with 'implement me', got: %v", r)
-		}
-	}()
-	v.CreateTableSQL(nil)
+import (
+	"fmt"
+	"testing"
+)
+
+func BenchmarkCrc64(b *testing.B){
+	bench := NewHashMap(16, WithHashCRC64())
+	for i := 0; i < b.N; i++{
+		bench.Set(fmt.Sprintf("key%d", i), i)
+	}
 }
 
-func CreateInsertSQL(t *testing.T) {
-	v := &SQLiteGenerator{}
-	success := false
-	defer func() {
-		r := recover()
-		if r != nil {
-			success = r == "implement me"
-		}
-		if !success {
-			t.Errorf("expected panic with 'implement me', got: %v", r)
-		}
-	}()
-	v.CreateTableSQL(nil)
+func BenchmarkCrc32(b *testing.B){
+	bench := NewHashMap(16, WithHashCRC32())
+	for i := 0; i < b.N; i++{
+		bench.Set(fmt.Sprintf("key%d", i), i)
+	}
 }
 
-func GenerateFakeUser(t *testing.T) {
-	v := &SQLiteGenerator{}
-	success := false
-	defer func() {
-		r := recover()
-		if r != nil {
-			success = r == "implement me"
-		}
-		if !success {
-			t.Errorf("expected panic with 'implement me', got: %v", r)
-		}
-	}()
-	v.CreateTableSQL(nil)
+func BenchmarkCrc16(b *testing.B){
+	bench := NewHashMap(16, WithHashCRC16())
+	for i := 0; i < b.N; i++{
+		bench.Set(fmt.Sprintf("key%d", i), i)
+	}
 }
 
-func TableName(t *testing.T) {
-	v := &SQLiteGenerator{}
-	success := false
-	defer func() {
-		r := recover()
-		if r != nil {
-			success = r == "implement me"
-		}
-		if !success {
-			t.Errorf("expected panic with 'implement me', got: %v", r)
-		}
-	}()
-	v.CreateTableSQL(nil)
+func BenchmarkCrc8(b *testing.B){
+	bench := NewHashMap(16, WithHashCRC8())
+	for i := 0; i < b.N; i++{
+		bench.Set(fmt.Sprintf("key%d", i), i)
+	}
 }

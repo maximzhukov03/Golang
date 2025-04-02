@@ -1,122 +1,156 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
-	"log"
-	"reflect"
-	"strings"
-
-	_ "github.com/mattn/go-sqlite3"
+	"hash/crc32"
+	"hash/crc64"
+	"time"
 )
 
-type User struct {
-	ID        int    `db_field:"id" db_type:"SERIAL PRIMARY KEY"`
-	FirstName string `db_field:"first_name" db_type:"VARCHAR(100)"`
-	LastName  string `db_field:"last_name" db_type:"VARCHAR(100)"`
-	Email     string `db_field:"email" db_type:"VARCHAR(100) UNIQUE"`
+type HashMaper interface {
+	Set(key string, value interface{})
+	Get(key string) (interface{}, bool)
 }
 
-func (u *User) TableName() string {
-	return "users"
+type HashMap struct{
+	data map[uint32]interface{}
+	hash func(string)uint32
 }
 
-type Tabler interface {
-	TableName() string
+func (hm *HashMap) Set(key string, value interface{}){
+	hashKey := hm.hash(key)
+	hm.data[hashKey] = value
 }
 
-type SQLGenerator interface {
-	CreateTableSQL(table Tabler) string
-	CreateInsertSQL(model Tabler) string
+func (hm *HashMap) Get(key string) (interface{}, bool){
+	hashKey := hm.hash(key)
+	value, ok := hm.data[hashKey]
+	return value, ok
 }
 
-type SQLiteGenerator struct{}
+func crc32Hash(key string) uint32 {
+	return crc32.ChecksumIEEE([]byte(key))
+}
 
-func (s *SQLiteGenerator) CreateTableSQL(tab Tabler) string{
-	t := reflect.TypeOf(tab)
-	t = t.Elem()
-	query := fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (", tab.TableName())
-	queryHelp := ""
-	for i := 0; i < t.NumField(); i++{
-		field := t.Field(i)
-		dbfield := field.Tag.Get("db_field")
-		dbtype := t.Field(i).Tag.Get("db_type")
+func crc64Hash(key string) uint32 {
+	table := crc64.MakeTable(crc64.ECMA)
+	return uint32(crc64.Checksum([]byte(key), table))
+}
 
-		if dbfield != "" && dbtype != ""{
-			if i > 0{
-				queryHelp += ","
-			}	
-
-			queryHelp += fmt.Sprintf("%s %s", dbfield, dbtype)
+func crc16Hash(key string) uint32 { //Мясо из gpt по переводу crc16
+	var crc uint16 = 0xFFFF
+	for _, b := range []byte(key) {
+		crc ^= uint16(b)
+		for i := 0; i < 8; i++ {
+			if (crc & 0x0001) != 0 {
+				crc >>= 1
+				crc ^= 0xA001
+			} else {
+				crc >>= 1
+			}
 		}
 	}
-
-	query += queryHelp + ");"
-
-	return query
-
+	return uint32(crc)
 }
 
-func (s *SQLiteGenerator) CreateInsertSQL(t Tabler) string {
-	var sb strings.Builder
-	val := reflect.ValueOf(t).Elem()
-	typ := val.Type()
-
-	var fields []string
-	var values []string
-
-	for i := 0; i < val.NumField(); i++ {
-		field := typ.Field(i)
-		dbfield := field.Tag.Get("db_field")
-		dbvalue := val.Field(i).Interface()
-
-		fields = append(fields, dbfield)
-		values = append(values, fmt.Sprintf("'%v'", dbvalue))
-	}
-
-	sb.WriteString(fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s);", t.TableName(), strings.Join(fields, ", "), strings.Join(values, ", ")))
-	return sb.String()
-}
-
-type Migrator struct{
-	db *sql.DB
-	sqlGenerator SQLGenerator
-}
-
-
-func NewMigrator(db *sql.DB, sqlGenerator SQLGenerator) *Migrator {
-	return &Migrator{
-		db:           db,
-		sqlGenerator: sqlGenerator,
-	}
-}
-
-func (m Migrator) Migrate(models ...Tabler) error{
-	for _, model := range models{
-		tableSQL := m.sqlGenerator.CreateTableSQL(model)
-
-		_, err := m.db.Exec(tableSQL)
-		if err != nil{
-			return fmt.Errorf("failed to create table for model %v: %v", model.TableName(), err)
+func crc8Hash(key string) uint32 { //Мясо из gpt по переводу crc8
+	var crc uint8 = 0
+	for _, b := range []byte(key) {
+		crc ^= b
+		for i := 0; i < 8; i++ {
+			if (crc & 0x80) != 0 {
+				crc = (crc << 1) ^ 0x07
+			} else {
+				crc <<= 1
+			}
 		}
 	}
-	return nil
+	return uint32(crc)
 }
 
-// Основная функция
+
+func NewHashMap(size int, crcs ...func(*HashMap)) *HashMap{
+	hm := &HashMap{
+		data: make(map[uint32]interface{}),
+		hash: nil,
+	}
+	for _, crc := range crcs{
+		crc(hm)
+	}
+	return hm
+}
+
+func WithHashCRC64() func(*HashMap){
+	return func(hm *HashMap){
+		hm.hash = crc64Hash
+	}
+}
+
+func WithHashCRC32() func(*HashMap){
+	return func(hm *HashMap){
+		hm.hash = crc32Hash
+	}
+}
+
+
+func WithHashCRC16() func(*HashMap){
+	return func(hm *HashMap){
+		hm.hash = crc16Hash
+	}
+}
+
+func WithHashCRC8() func(*HashMap){
+	return func(hm *HashMap){
+		hm.hash = crc8Hash
+	}
+}
+
+func MeassureTime(f func()) time.Duration{
+	s := time.Now()
+	f()
+	time := time.Since(s)
+	return time
+}
+
+
 func main() {
-	// Подключение к SQLite БД
-	db, err := sql.Open("sqlite3", "file:my_database.db?cache=shared&mode=rwc")
-	if err != nil {
-		log.Fatalf("failed to connect to the database: %v", err)
-	}
+	m := NewHashMap(16, WithHashCRC64())
+	since := MeassureTime(func() {
+		m.Set("key", "value")
 
-	YourSQLGeneratorInstance := &SQLiteGenerator{}
-	// Создание мигратора с использованием вашего SQLGenerator
-	migrator := NewMigrator(db, YourSQLGeneratorInstance)
+		if value, ok := m.Get("key"); ok {
+			fmt.Println(value)
+		}
+	})
+	fmt.Println(since)
 
-	// Миграция таблицы User
-	if err := migrator.Migrate(&User{}); err != nil {
-		log.Fatalf("failed to migrate: %v", err)
-	}
+	m = NewHashMap(16, WithHashCRC32())
+	since = MeassureTime(func() {
+		m.Set("key", "value")
+
+		if value, ok := m.Get("key"); ok {
+			fmt.Println(value)
+		}
+	})
+	fmt.Println(since)
+
+	m = NewHashMap(16, WithHashCRC16())
+	since = MeassureTime(func() {
+		m.Set("key", "value")
+
+		if value, ok := m.Get("key"); ok {
+			fmt.Println(value)
+		}
+	})
+	fmt.Println(since)
+
+	m = NewHashMap(16, WithHashCRC8())
+	since = MeassureTime(func() {
+		m.Set("key", "value")
+
+		if value, ok := m.Get("key"); ok {
+			fmt.Println(value)
+		}
+	})
+	fmt.Println(since)
 }

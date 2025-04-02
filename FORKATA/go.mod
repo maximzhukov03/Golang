@@ -1,6 +1,6 @@
 module golang/forkata
 
-go 1.23.3
+go 1.19
 
 require (
 	github.com/brianvoe/gofakeit/v6 v6.28.0

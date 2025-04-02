@@ -29,13 +29,13 @@ type SQLiteGenerator struct{}
 
 // Интерфейс для генерации SQL-запросов
 type SQLGenerator interface {
-	CreateTableSQL(*User) string
+	CreateTableSQL(Tabler) string
 	CreateInsertSQL(Tabler) string
 }
 
-func (s *SQLiteGenerator) CreateTableSQL(u *User) string{
-	t := reflect.TypeOf(*u)
-	query := fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (", u.TableName())
+func (s *SQLiteGenerator) CreateTableSQL(tab Tabler) string{
+	t := reflect.TypeOf(tab)
+	query := fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (", tab.TableName())
 	queryHelp := ""
 	for i := 0; i < t.NumField(); i++{
 		field := t.Field(i)
@@ -105,3 +105,14 @@ func main() {
 		fmt.Println(query)
 	}
 }
+
+// panic: reflect: NumField of non-struct type *main.User
+
+// goroutine 1 [running]:
+// reflect.(*rtype).NumField(0x640eac?)
+//         /usr/local/go/src/reflect/type.go:1033 +0x66
+// main.(*SQLiteGenerator).CreateTableSQL(0xc000062000?, {0x692cc8?, 0xc000100200?})
+//         /home/zukov/Рабочий стол/Golang/FORKATA/main.go:40 +0x125
+// main.main()
+//         /home/zukov/Рабочий стол/Golang/FORKATA/main.go:99 +0x46
+// exit status 2

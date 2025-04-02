@@ -35,6 +35,7 @@ type SQLGenerator interface {
 
 func (s *SQLiteGenerator) CreateTableSQL(tab Tabler) string{
 	t := reflect.TypeOf(tab)
+	t = t.Elem()
 	query := fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (", tab.TableName())
 	queryHelp := ""
 	for i := 0; i < t.NumField(); i++{

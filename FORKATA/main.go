@@ -29,8 +29,8 @@ type SQLiteGenerator struct{}
 
 // Интерфейс для генерации SQL-запросов
 type SQLGenerator interface {
-	CreateTableSQL() string
-	CreateInsertSQL() string
+	CreateTableSQL(*User) string
+	CreateInsertSQL(Tabler) string
 }
 
 func (s *SQLiteGenerator) CreateTableSQL(u *User) string{
@@ -79,9 +79,8 @@ func (s *SQLiteGenerator) CreateInsertSQL(t Tabler) string {
 }
 type GoFakeitGenerator struct{}
 
-// Интерфейс для генерации фейковых данных
 type FakeDataGenerator interface {
-	GenerateFakeUser() string
+	GenerateFakeUser() User
 }
 
 func (f *GoFakeitGenerator) GenerateFakeUser() User{

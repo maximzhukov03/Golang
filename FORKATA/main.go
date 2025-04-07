@@ -178,7 +178,7 @@ func (e *Exmo) GetOrderBook(limit int, pairs ...string) (OrderBook, error){
 
 func (e *Exmo) GetCurrencies() (Currencies, error){
 	var curr Currencies
-	body, err := GetConv(candlesHistory, nil, e)
+	body, err := GetConv(currency, nil, e)
 	if err !=  nil{
 		return nil, err
 	}

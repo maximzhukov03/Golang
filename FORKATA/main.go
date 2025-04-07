@@ -1,156 +1,233 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
-	"hash/crc32"
-	"hash/crc64"
+	"io"
+	"net/http"
+	"net/url"
+	"strings"
 	"time"
 )
 
-type HashMaper interface {
-	Set(key string, value interface{})
-	Get(key string) (interface{}, bool)
+const (
+	ticker         = "/ticker"
+	trades         = "/trades"
+	orderBook      = "/order_book"
+	currency       = "/currency"
+	candlesHistory = "/candles_history"
+)
+
+type Ticker map[string]TickerValue // Структура для /ticker
+type TickerValue struct {
+	BuyPrice  string `json:"buy_price"`
+	SellPrice string `json:"sell_price"`
+	LastTrade string `json:"last_trade"`
+	High      string `json:"high"`
+	Low       string `json:"low"`
+	Avg       string `json:"avg"`
+	Vol       string `json:"vol"`
+	VolCurr   string `json:"vol_curr"`
+	Updated   int64  `json:"updated"`
 }
 
-type HashMap struct{
-	data map[uint32]interface{}
-	hash func(string)uint32
+type Trades map[string][]Pair // Структура для /trades
+
+type Pair struct {
+	TradeID  int64  `json:"trade_id"`
+	Date     int64  `json:"date"`
+	Type     string `json:"type"`
+	Quantity string `json:"quantity"`
+	Price    string `json:"price"`
+	Amount   string `json:"amount"`
 }
 
-func (hm *HashMap) Set(key string, value interface{}){
-	hashKey := hm.hash(key)
-	hm.data[hashKey] = value
+type OrderBook map[string]OrderBookPair // Структура для /order_book
+
+type OrderBookPair struct{
+	AskQuantity string     `json:"ask_quantity"`
+	AskAmount   string     `json:"ask_amount"`
+	AskTop      string     `json:"ask_top"`
+	BidQuantity string     `json:"bid_quantity"`
+	BidAmount   string     `json:"bid_amount"`
+	BidTop      string     `json:"bid_top"`
+	Ask         [][]string `json:"ask"`
+	Bid         [][]string `json:"bid"`
 }
 
-func (hm *HashMap) Get(key string) (interface{}, bool){
-	hashKey := hm.hash(key)
-	value, ok := hm.data[hashKey]
-	return value, ok
+type Currencies []string
+
+type CandlesHistory struct {
+	Candles []Candle `json:"candles"`
 }
 
-func crc32Hash(key string) uint32 {
-	return crc32.ChecksumIEEE([]byte(key))
+type Candle struct {
+	T int64   `json:"t"`
+	O float64 `json:"o"`
+	C float64 `json:"c"`
+	H float64 `json:"h"`
+	L float64 `json:"l"`
+	V float64 `json:"v"`
 }
 
-func crc64Hash(key string) uint32 {
-	table := crc64.MakeTable(crc64.ECMA)
-	return uint32(crc64.Checksum([]byte(key), table))
+
+
+
+type Exchanger interface {
+	GetTicker() (Ticker, error)
+	GetTrades(pairs ...string) (Trades, error)
+	GetOrderBook(limit int, pairs ...string) (OrderBook, error)
+	GetCurrencies() (Currencies, error)
+	GetCandlesHistory(symbol string, resolution int, from, to int) (CandlesHistory, error)
+	GetClosePrice(pair string, limit int, start, end time.Time) ([]float64, error)
 }
 
-func crc16Hash(key string) uint32 { //Мясо из gpt по переводу crc16
-	var crc uint16 = 0xFFFF
-	for _, b := range []byte(key) {
-		crc ^= uint16(b)
-		for i := 0; i < 8; i++ {
-			if (crc & 0x0001) != 0 {
-				crc >>= 1
-				crc ^= 0xA001
-			} else {
-				crc >>= 1
-			}
-		}
+type Exmo struct {
+	client *http.Client
+	url    string
+}
+
+func NewExmo(opts ...func(exmo *Exmo)) *Exmo{
+	exmo := &Exmo{
+		client: http.DefaultClient,
+		url: "https://api.exmo.com/v1.1",
 	}
-	return uint32(crc)
-}
-
-func crc8Hash(key string) uint32 { //Мясо из gpt по переводу crc8
-	var crc uint8 = 0
-	for _, b := range []byte(key) {
-		crc ^= b
-		for i := 0; i < 8; i++ {
-			if (crc & 0x80) != 0 {
-				crc = (crc << 1) ^ 0x07
-			} else {
-				crc <<= 1
-			}
-		}
+	for _, opt := range opts{
+		opt(exmo)
 	}
-	return uint32(crc)
-}
 
+	return exmo
+} 
 
-func NewHashMap(size int, crcs ...func(*HashMap)) *HashMap{
-	hm := &HashMap{
-		data: make(map[uint32]interface{}),
-		hash: nil,
+func WithClient(client *http.Client) func(exmo *Exmo){
+	return func(ex *Exmo){
+		ex.client = client
 	}
-	for _, crc := range crcs{
-		crc(hm)
-	}
-	return hm
-}
+} 
 
-func WithHashCRC64() func(*HashMap){
-	return func(hm *HashMap){
-		hm.hash = crc64Hash
+func WithURL(url string) func(exmo *Exmo){
+	return func(ex *Exmo){
+		ex.url = url
 	}
 }
 
-func WithHashCRC32() func(*HashMap){
-	return func(hm *HashMap){
-		hm.hash = crc32Hash
+func GetConv(constanta string, url url.Values, exmo *Exmo) ([]byte, error){
+	client := exmo.client
+	urlReq := exmo.url + constanta
+	if url != nil {
+		urlReq += "?" + url.Encode()
 	}
-}
-
-
-func WithHashCRC16() func(*HashMap){
-	return func(hm *HashMap){
-		hm.hash = crc16Hash
+	req, err := http.NewRequest("GET", urlReq, nil)
+  
+	if err != nil {
+	  return nil, err
 	}
-}
-
-func WithHashCRC8() func(*HashMap){
-	return func(hm *HashMap){
-		hm.hash = crc8Hash
+	res, err := client.Do(req)
+	if err != nil {
+	  return nil, err
 	}
+	defer res.Body.Close()
+  
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+	  return nil, err
+	}
+	return body, nil
 }
 
-func MeassureTime(f func()) time.Duration{
-	s := time.Now()
-	f()
-	time := time.Since(s)
-	return time
+func (e *Exmo) GetTicker() (Ticker, error) {
+	var tick Ticker
+
+	body, err := GetConv(ticker, nil, e)
+
+	err = json.Unmarshal(body, &tick)
+	if err != nil {
+		return tick, err
+	}
+	return tick, err
 }
+
+func (e *Exmo) GetTrades(pairs ...string) (Trades, error){
+	var trade Trades
+	
+	url := url.Values{}
+	url.Set("pair", strings.Join(pairs, ","))
+	
+	body, err := GetConv(trades, url, e)
+
+	err = json.Unmarshal(body, &trade)
+	if err != nil {
+		return trade, err
+	}
+	return trade, err
+}
+
+func (e *Exmo) GetOrderBook(limit int, pairs ...string) (OrderBook, error){
+	var order OrderBook
+	url := url.Values{}
+	url.Set("pair", strings.Join(pairs, ","))
+	url.Set("limit", fmt.Sprintf("%d", limit))
+	body, err := GetConv(orderBook, url, e)
+
+	err = json.Unmarshal(body, &order)
+	if err != nil {
+		return order, err
+	}
+	return order, err
+}
+
+func (e *Exmo) GetCurrencies() (Currencies, error){
+	var curr Currencies
+	body, err := GetConv(candlesHistory, nil, e)
+	if err !=  nil{
+		return nil, err
+	}
+	err = json.Unmarshal(body, &curr)
+	if err != nil {
+		return curr, err
+	}
+	return curr, err
+}
+
+func (e *Exmo) GetCandlesHistory(pair string, limit int, start, end time.Time) (CandlesHistory, error) {
+	var candles CandlesHistory
+	params := url.Values{}
+	params.Set("symbol", pair)
+	params.Set("limit", fmt.Sprintf("%d", limit))
+	params.Set("from", fmt.Sprintf("%d", start.Unix()))
+	params.Set("to", fmt.Sprintf("%d", end.Unix()))
+
+	body, err := GetConv(candlesHistory, params, e)
+	if err != nil {
+		return candles, err
+	}
+	err = json.Unmarshal(body, &candles)
+	if err != nil {
+		return candles, err
+	}
+	return candles, nil
+}
+
+func (e *Exmo) GetClosePrice(pair string, limit int, start, end time.Time) ([]float64, error){
+	candles, err := e.GetCandlesHistory(pair, limit, start, end)
+	if err != nil {
+		return nil, err
+	}
+	var closes []float64
+	for _, c := range candles.Candles {
+		closes = append(closes, c.C)
+	}
+	return closes, nil
+}
+
+
 
 
 func main() {
-	m := NewHashMap(16, WithHashCRC64())
-	since := MeassureTime(func() {
-		m.Set("key", "value")
-
-		if value, ok := m.Get("key"); ok {
-			fmt.Println(value)
-		}
-	})
-	fmt.Println(since)
-
-	m = NewHashMap(16, WithHashCRC32())
-	since = MeassureTime(func() {
-		m.Set("key", "value")
-
-		if value, ok := m.Get("key"); ok {
-			fmt.Println(value)
-		}
-	})
-	fmt.Println(since)
-
-	m = NewHashMap(16, WithHashCRC16())
-	since = MeassureTime(func() {
-		m.Set("key", "value")
-
-		if value, ok := m.Get("key"); ok {
-			fmt.Println(value)
-		}
-	})
-	fmt.Println(since)
-
-	m = NewHashMap(16, WithHashCRC8())
-	since = MeassureTime(func() {
-		m.Set("key", "value")
-
-		if value, ok := m.Get("key"); ok {
-			fmt.Println(value)
-		}
-	})
-	fmt.Println(since)
+	exchange := NewExmo()
+	candles, err := exchange.GetCandlesHistory("BTC_USD", 30, time.Now().Add(-time.Hour*24), time.Now())
+	if err != nil {
+		return
+	}
+	fmt.Println(candles)
 }

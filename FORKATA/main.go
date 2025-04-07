@@ -208,8 +208,8 @@ func (e *Exmo) GetCandlesHistory(symbol string, resolution int, from int, to int
 	return candles, nil
 }
 
-func (e *Exmo) GetClosePrice(pair string, limit int, start, end int) ([]float64, error){
-	candles, err := e.GetCandlesHistory(pair, limit, start, end)
+func (e *Exmo) GetClosePrice(pair string, limit int, start, end time.Time) ([]float64, error){
+	candles, err := e.GetCandlesHistory(pair, limit, int(start.Unix()), int(end.Unix()))
 	if err != nil {
 		return nil, err
 	}

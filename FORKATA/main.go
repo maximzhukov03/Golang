@@ -117,6 +117,8 @@ func GetConv(constanta string, url url.Values, exmo *Exmo) ([]byte, error){
 	if url != nil {
 		urlReq += "?" + url.Encode()
 	}
+
+	fmt.Println(urlReq)
 	req, err := http.NewRequest("GET", urlReq, nil)
   
 	if err != nil {
@@ -189,18 +191,40 @@ func (e *Exmo) GetCurrencies() (Currencies, error){
 	return curr, err
 }
 
-func (e *Exmo) GetCandlesHistory(symbol string, resolution int, from int, to int) (CandlesHistory, error) {
+func (e *Exmo) GetCandlesHistory(symbol string, resolution int, from, to any) (CandlesHistory, error) {
 	var candles CandlesHistory
+
+	var fromUnix, toUnix int
+
+    switch v := from.(type) {
+    case time.Time:
+        fromUnix = int(v.Unix())
+    case int:
+        fromUnix = v
+    default:
+        return CandlesHistory{}, fmt.Errorf("unsupported 'from' type: %T", from)
+    }
+
+    switch v := to.(type) {
+    case time.Time:
+        toUnix = int(v.Unix())
+    case int:
+        toUnix = v
+    default:
+        return CandlesHistory{}, fmt.Errorf("unsupported 'to' type: %T", to)
+    }
+
 	params := url.Values{}
 	params.Set("symbol", symbol)
-	params.Set("limit", fmt.Sprintf("%d", resolution))
-	params.Set("from", fmt.Sprintf("%d", from))
-	params.Set("to", fmt.Sprintf("%d", to))
+	params.Set("resolution", fmt.Sprintf("%d", resolution))
+	params.Set("from", fmt.Sprintf("%d", fromUnix))
+	params.Set("to", fmt.Sprintf("%d", toUnix))
 
 	body, err := GetConv(candlesHistory, params, e)
 	if err != nil {
 		return candles, err
 	}
+
 	err = json.Unmarshal(body, &candles)
 	if err != nil {
 		return candles, err
@@ -225,9 +249,14 @@ func (e *Exmo) GetClosePrice(pair string, limit int, start, end time.Time) ([]fl
 
 func main() {
 	exchange := NewExmo()
-	candles, err := exchange.GetCandlesHistory("BTC_USD", 30, int(time.Now().Add(-time.Hour*24).Unix()), int(time.Now().Unix()))
+	candles, err := exchange.GetCandlesHistory("BTC_USD", 15, int(time.Now().Add(-time.Hour*24).Unix()), int(time.Now().Unix()))
 	if err != nil {
 		return
 	}
-	fmt.Println(candles)
+	jsonBytes, err := json.MarshalIndent(candles, "", "\t")
+	if err != nil {
+		fmt.Printf("Error marshaling JSON: %v\n", err)
+		return
+	}
+	fmt.Println(string(jsonBytes))
 }

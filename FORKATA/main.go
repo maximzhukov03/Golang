@@ -189,13 +189,13 @@ func (e *Exmo) GetCurrencies() (Currencies, error){
 	return curr, err
 }
 
-func (e *Exmo) GetCandlesHistory(pair string, limit int, start, end time.Time) (CandlesHistory, error) {
+func (e *Exmo) GetCandlesHistory(symbol string, resolution int, from int, to int) (CandlesHistory, error) {
 	var candles CandlesHistory
 	params := url.Values{}
-	params.Set("symbol", pair)
-	params.Set("limit", fmt.Sprintf("%d", limit))
-	params.Set("from", fmt.Sprintf("%d", start.Unix()))
-	params.Set("to", fmt.Sprintf("%d", end.Unix()))
+	params.Set("symbol", symbol)
+	params.Set("limit", fmt.Sprintf("%d", resolution))
+	params.Set("from", fmt.Sprintf("%d", from))
+	params.Set("to", fmt.Sprintf("%d", to))
 
 	body, err := GetConv(candlesHistory, params, e)
 	if err != nil {
@@ -208,7 +208,7 @@ func (e *Exmo) GetCandlesHistory(pair string, limit int, start, end time.Time) (
 	return candles, nil
 }
 
-func (e *Exmo) GetClosePrice(pair string, limit int, start, end time.Time) ([]float64, error){
+func (e *Exmo) GetClosePrice(pair string, limit int, start, end int) ([]float64, error){
 	candles, err := e.GetCandlesHistory(pair, limit, start, end)
 	if err != nil {
 		return nil, err
@@ -225,7 +225,7 @@ func (e *Exmo) GetClosePrice(pair string, limit int, start, end time.Time) ([]fl
 
 func main() {
 	exchange := NewExmo()
-	candles, err := exchange.GetCandlesHistory("BTC_USD", 30, time.Now().Add(-time.Hour*24), time.Now())
+	candles, err := exchange.GetCandlesHistory("BTC_USD", 30, int(time.Now().Add(-time.Hour*24).Unix()), int(time.Now().Unix()))
 	if err != nil {
 		return
 	}

@@ -1,88 +1,33 @@
 package main
+import "testing"
 
-import (
-	// "encoding/json"
-	"encoding/json"
-	"fmt"
-	"io"
-	"net/http"
-	"net/url"
-	// "strings"
-)
-
-type Exmo struct {
-	client *http.Client
-	url    string
+type DB interface {
+    GetUser(id int) (User, error)
 }
 
-func NewExmo(opts ...func(exmo *Exmo)) *Exmo{
-	exmo := &Exmo{
-		client: http.DefaultClient,
-		url: "https://api.exmo.com/v1.1",
-	}
-	for _, opt := range opts{
-		opt(exmo)
-	}
+type realDB struct{}
 
-	return exmo
-} 
-
-func WithClient(client *http.Client) func(exmo *Exmo){
-	return func(ex *Exmo){
-		ex.client = client
-	}
-} 
-
-func WithURL(url string) func(exmo *Exmo){
-	return func(ex *Exmo){
-		ex.url = url
-	}
+func (db *realDB) GetUser(id int) (User, error) {
+    // реальная реализация
 }
 
-type Currencies []string
+type mockDB struct{}
 
-func GetConv(constanta string, url url.Values, exmo *Exmo) ([]byte, error){
-	client := exmo.client
-	urlReq := exmo.url + constanta
-	if url != nil {
-		urlReq += "?" + url.Encode()
-	}
-	req, err := http.NewRequest("GET", urlReq, nil)
-  
-	if err != nil {
-	  return nil, err
-	}
-	res, err := client.Do(req)
-	if err != nil {
-	  return nil, err
-	}
-	defer res.Body.Close()
-  
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-	  return nil, err
-	}
-	return body, nil
+func (db *mockDB) GetUser(id int) (User, error) {
+    return User{ID: id, Name: "Test User"}, nil
 }
 
-func (e *Exmo) GetCurrencies(){
-	var curr Currencies
-	
-	body, err := GetConv("/currency", nil, e)
-  if err != nil{
-    fmt.Errorf("Ошибка")
-  }
 
-
-	err = json.Unmarshal(body, &curr)
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println(curr)
-}
-
-func main(){
-  exchange := NewExmo()
-
-  exchange.GetCurrencies()
+func TestGetUser(t *testing.T) {
+    db := &mockDB{}
+    service := NewService(db)
+    
+    user, err := service.GetUser(1)
+    if err != nil {
+        t.Fatalf("unexpected error: %v", err)
+    }
+    
+    if user.Name != "Test User" {
+        t.Errorf("unexpected user name: %s", user.Name)
+    }
 }

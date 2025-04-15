@@ -1,109 +1,88 @@
 package main
 
-import (
-	"context"
-	"fmt"
 
-	"github.com/google/go-github/v53/github"
-	"golang.org/x/oauth2"
+import (
+  "encoding/json"
+  "fmt"
 )
 
-func main() {
-	ctx := context.Background()
-	ts := oauth2.StaticTokenSource(
-		// &oauth2.Token{AccessToken: ""},
-	)
-	tc := oauth2.NewClient(ctx, ts)
-
-	client := github.NewClient(tc)
-	// g := &GithubAdapter{
-	// 	RepoList: &MockRepoLister{},
-	// 	GistList: &MockGistLister{},
-	// }
-	g := NewGithubAdapter(client)
-
-	fmt.Println(g.GetGists(context.Background(), "ptflp"))
-	fmt.Println(g.GetRepos(context.Background(), "ptflp"))
+func UnmarshalWeather(data []byte) (Weather, error) {
+	var r Weather
+	err := json.Unmarshal(data, &r)
+	return r, err
 }
 
-type RepoLister interface {
-	List(ctx context.Context, username string, opt *github.RepositoryListOptions) ([]*github.Repository, *github.Response, error)
+func (r *Weather) Marshal() ([]byte, error) {
+	return json.Marshal(r)
 }
 
-type GistLister interface {
-	List(ctx context.Context, username string, opt *github.GistListOptions) ([]*github.Gist, *github.Response, error)
+type Weather struct {
+	Temperature string     `json:"temperature"`
+	Wind        string     `json:"wind"`
+	Description string     `json:"description"`
+	Forecast    []Forecast `json:"forecast"`
 }
 
-type Githuber interface {
-	GetGists(ctx context.Context, username string) ([]Item, error)
-	GetRepos(ctx context.Context, username string) ([]Item, error) // opt := &github.RepositoryListOptions{ListOptions: github.ListOptions{PerPage: 1000}}
+type Forecast struct {
+	Day         string `json:"day"`
+	Temperature string `json:"temperature"`
+	Wind        string `json:"wind"`
 }
 
-type GithubAdapter struct {
-	RepoList RepoLister
-	GistList GistLister
+type WeatherData interface{
+  Get(city string) (Weather, error)
 }
 
-func NewGithubAdapter(githubClient *github.Client) *GithubAdapter {
-	g := &GithubAdapter{
-		RepoList: githubClient.Repositories,
-		GistList: githubClient.Gists,
-	}
-
-	return g
+type DataWeather struct{
+  data map[string]Weather
 }
 
-func (gitAd *GithubAdapter) GetGists(ctx context.Context, username string) ([]Item, error) {
-	opt := &github.GistListOptions{}
-
-	body, _, err := gitAd.GistList.List(ctx, username, opt)
-	if err != nil {
-		return nil, err
-	}
-	var items []Item
-	for _, elem := range body {
-		title := ""
-		if elem.Description != nil {
-			title = *elem.Description
-		}
-		url := ""
-		if elem.HTMLURL != nil {
-			url = *elem.HTMLURL
-		}
-		desc := "TASK: " + title
-		items = append(items, Item{Title: title, Description: desc, Link: url})
-	}
-	return items, err
+func NewMock() *DataWeather{
+  return &DataWeather{    
+    data: map[string]Weather{
+      "Уфа":{
+        Temperature:"20",
+	      Wind:"23",
+	      Description:"23",
+	      Forecast:[]Forecast{
+          {	
+            Day: "1",
+	          Temperature: "23",
+	          Wind:"25",
+          },
+        },
+      },
+    },
+  }
 }
 
-func (gitAd *GithubAdapter) GetRepos(ctx context.Context, username string) ([]Item, error) {
-	opt := &github.RepositoryListOptions{}
-
-	body, _, err := gitAd.RepoList.List(ctx, username, opt)
-	if err != nil {
-		return nil, err
-	}
-	var items []Item
-	for _, elem := range body {
-		title := ""
-		if elem.Name != nil {
-			title = *elem.Name
-		}
-		desc := ""
-		if elem.Description != nil {
-			desc = *elem.Description
-		}
-		url := ""
-		if elem.HTMLURL != nil {
-			url = *elem.HTMLURL
-		}
-		items = append(items, Item{Title: title, Description: desc, Link: url})
-	}
-	return items, err
+func (db *DataWeather) Get(c string) (Weather, error){
+  data, ok := db.data[c]
+  if ok {
+    return data, nil
+  }
+  
+  return data, fmt.Errorf("Ошибка получения")
 }
 
-type Item struct {
-	Title       string
-	Description string
-	Link        string
+func main(){
+  db := DataWeather{
+    data: map[string]Weather{
+      "Уфа":{
+        Temperature:"20",
+	      Wind:"23",
+	      Description:"23",
+	      Forecast:[]Forecast{
+          {	
+            Day: "1",
+	          Temperature: "23",
+	          Wind:"25",
+          },
+        },
+      },
+    },
+  }
+  
+  data, _ := db.Get("Уфа")
+  fmt.Println(data)
 }

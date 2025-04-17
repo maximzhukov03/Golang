@@ -98,35 +98,6 @@ type Exchanger interface {
 	GetClosePrice(pair string, resolution int, start, end time.Time) ([]float64, error)
 }
 
-type Exmo struct{}
-
-func NewExmo() *Exmo {
-	return &Exmo{}
-}
-func (e *Exmo) GetClosePrice(pair string, resolution int, start, end time.Time) ([]float64, error) {
-	return []float64{100, 102, 101, 103, 105, 104, 106, 108, 107}, nil
-}
-
-func (e *Exmo) GetTicker() (Ticker, error) {
-	return Ticker{}, nil
-}
-
-func (e *Exmo) GetTrades(pairs ...string) (Trades, error) {
-	return Trades{}, nil
-}
-
-func (e *Exmo) GetOrderBook(limit int, pairs ...string) (OrderBook, error) {
-	return OrderBook{}, nil
-}
-
-func (e *Exmo) GetCurrencies() (Currencies, error) {
-	return Currencies{}, nil
-}
-
-func (e *Exmo) GetCandlesHistory(pair string, resolution int, start, end time.Time) (CandlesHistory, error) {
-	return CandlesHistory{}, nil
-}
-
 func main() {
 	var exchange Exchanger
 	exchange = NewExmo()

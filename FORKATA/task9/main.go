@@ -3,7 +3,23 @@ package main
 import "fmt"
 
 func GeneralSort(arr []int) {
-    // выбор эффективного алгоритма сортировки в зависимости от размера входного массива
+	lenArr := len(arr)
+	switch {
+	case lenArr <= 10:
+		insertionSort(arr)
+		// fmt.Println("Insertion Sort")
+	case lenArr <= 100:
+		selectionSort(arr)
+		// fmt.Println("Selection Sort")
+	case lenArr <= 1000:
+		sorted := quicksort(arr)
+		copy(arr, sorted)
+		// fmt.Println("Quicksort")
+	default:
+		sorted := mergeSort(arr)
+		copy(arr, sorted)
+		// fmt.Println("Merge Sort")
+	}
 }
 
 func mergeSort(data []int) []int{

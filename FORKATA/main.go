@@ -1,6 +1,5 @@
 package main
 
-
 import (
   "encoding/json"
   "fmt"
@@ -13,7 +12,7 @@ func UnmarshalWeather(data []byte) (Weather, error) {
 }
 
 func (r *Weather) Marshal() ([]byte, error) {
-	return json.Marshal(r)
+	return json.MarshalIndent(r, "", "")
 }
 
 type Weather struct {
@@ -29,60 +28,90 @@ type Forecast struct {
 	Wind        string `json:"wind"`
 }
 
-type WeatherData interface{
-  Get(city string) (Weather, error)
+// WeatherProvider интерфейс для получения погоды
+type WeatherGeter interface {
+	GetWeather(city string) (Weather, error)
 }
 
-type DataWeather struct{
-  data map[string]Weather
+// MockWeatherProvider - мок-реализация WeatherProvider
+type MockWeather struct {
+	data map[string]Weather
 }
 
-func NewMock() *DataWeather{
-  return &DataWeather{    
-    data: map[string]Weather{
-      "Уфа":{
-        Temperature:"20",
-	      Wind:"23",
-	      Description:"23",
-	      Forecast:[]Forecast{
-          {	
-            Day: "1",
-	          Temperature: "23",
-	          Wind:"25",
-          },
-        },
-      },
-    },
-  }
+// NewMockWeatherProvider создает новый мок-объект с данными для 3 городов
+func NewMockWeather() *MockWeather {
+	return &MockWeather{
+		data: map[string]Weather{
+			"Уфа": {
+				Temperature: "+24 °C",
+				Wind:        "19 km/h",
+				Description: "Sunny",
+				Forecast: []Forecast{
+					{Day: "1", Temperature: "+24 °C", Wind: "17 km/h"},
+					{Day: "2", Temperature: "+23 °C", Wind: "15 km/h"},
+					{Day: "3", Temperature: "+27 °C", Wind: "17 km/h"},
+				},
+			},
+			"Стерлитамак": {
+				Temperature: "+18 °C",
+				Wind:        "12 km/h",
+				Description: "Partly cloudy",
+				Forecast: []Forecast{
+					{Day: "1", Temperature: "+18 °C", Wind: "12 km/h"},
+					{Day: "2", Temperature: "+16 °C", Wind: "10 km/h"},
+					{Day: "3", Temperature: "+20 °C", Wind: "15 km/h"},
+				},
+			},
+			"СПб": {
+				Temperature: "+15 °C",
+				Wind:        "22 km/h",
+				Description: "Rainy",
+				Forecast: []Forecast{
+					{Day: "1", Temperature: "+15 °C", Wind: "22 km/h"},
+					{Day: "2", Temperature: "+14 °C", Wind: "20 km/h"},
+					{Day: "3", Temperature: "+16 °C", Wind: "18 km/h"},
+				},
+			},
+		},
+	}
 }
 
-func (db *DataWeather) Get(c string) (Weather, error){
-  data, ok := db.data[c]
-  if ok {
-    return data, nil
-  }
-  
-  return data, fmt.Errorf("Ошибка получения")
+// GetWeather реализует интерфейс WeatherProvider для мок-объекта
+func (m *MockWeather) GetWeather(city string) (Weather, error) {
+	data, ok := m.data[city]
+	if !ok {
+		return Weather{}, fmt.Errorf("city %s not found", city)
+	}
+	return data, nil
 }
 
 func main(){
-  db := DataWeather{
-    data: map[string]Weather{
-      "Уфа":{
-        Temperature:"20",
-	      Wind:"23",
-	      Description:"23",
-	      Forecast:[]Forecast{
-          {	
-            Day: "1",
-	          Temperature: "23",
-	          Wind:"25",
-          },
-        },
-      },
-    },
+	// Создаем мок-провайдер
+	mock := NewMockWeather()
+
+	// Получаем данные для Минска
+	weather, err := mock.GetWeather("Уфа")
+	if err != nil {
+		fmt.Println(err)
+	}
+  weath, err := weather.Marshal()
+  if err != nil{
+    fmt.Println(err)
   }
-  
-  data, _ := db.Get("Уфа")
-  fmt.Println(data)
+	// Выводим результат
+	fmt.Println(string(weath))
+
+	// Демонстрация работы с другими городами
+	cities := []string{"Уфа", "Стерлитамак", "СПб",}
+	for _, city := range cities {
+		weather, err := mock.GetWeather(city)
+		if err != nil {
+			fmt.Println(err)
+    }
+    weath, err := weather.Marshal()
+    if err != nil{
+      fmt.Println(err)
+    }
+    fmt.Printf("%s:\n%s\n", city, string(weath))
+	}
 }

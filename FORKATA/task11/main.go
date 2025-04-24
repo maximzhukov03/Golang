@@ -369,7 +369,7 @@ func GenerateData(numCommits int) []Commit {
 		}
 		commits = append(commits, commit)
 	}
-
+	QuickSort(commits)
 	return commits
 }
 

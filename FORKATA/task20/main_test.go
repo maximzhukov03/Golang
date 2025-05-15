@@ -38,3 +38,11 @@ func TestHttp(t *testing.T){
 		}
 	}
 }
+
+func TestLogger(t *testing.T){
+	Logger()
+	if logger == nil{
+		t.Error("ОШИБКА В ЛОГГЕРЕ")
+	}
+}
+

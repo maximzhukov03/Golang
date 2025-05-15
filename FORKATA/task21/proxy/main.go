@@ -12,9 +12,9 @@ import (
 func main() {
 	r := chi.NewRouter()
 
-	proxy := NewReverseProxy("localhost", "1313")
+	proxy := NewReverseProxy("hugo", "1313")
 	r.Use(proxy.ReverseProxy)
-
+	log.Println("НАЧАЛО РАБОТЫ")
 	http.ListenAndServe(":8080", r)
 }
 

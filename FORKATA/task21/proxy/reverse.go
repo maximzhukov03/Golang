@@ -6,7 +6,6 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"strings"
-	"log"
 )
 
 type ReverseProxy struct {
@@ -27,14 +26,16 @@ func NewReverseProxy(host, port string) *ReverseProxy {
 func (rp *ReverseProxy) ReverseProxy(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if strings.HasPrefix(r.URL.Path, "/api") {
-			log.Println("API Найден")
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("Hello from API"))
+			fmt.Fprint(w, "Hello from API")
 			return
 		}
 		link := fmt.Sprintf("http://%s:%s", rp.host, rp.port)
 		uri, _ := url.Parse(link)
 
+		if uri.Host == r.Host {
+			next.ServeHTTP(w, r)
+			return
+		}
 		r.Header.Set("Reverse-Proxy", "true")
 
 		proxy := httputil.ReverseProxy{Director: func(r *http.Request) {

@@ -12,8 +12,13 @@ import (
 func main() {
 	r := chi.NewRouter()
 
-	proxy := NewReverseProxy("localhost", "1313")
-	r.NotFound(proxy.ReverseProxy(http.NotFoundHandler()))
+	reverseProxy := NewReverseProxy("hugo", "1313")
+
+	r.Use(reverseProxy.ReverseProxy)
+	r.Get("/api/*", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, "Hello from API")
+	})
+	fmt.Println("Starting server on :8080")
 
 	http.ListenAndServe(":8080", r)
 }

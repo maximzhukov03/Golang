@@ -28,7 +28,9 @@ const content = ``
 func WorkerTest() {
 	t := time.NewTicker(1 * time.Second)
 	var b byte = 0
-	for {
+	for {"https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address"
+		dadataGeocoder = "https://suggestions.dadata.ru/suggestions/api/4_1/rs/geolocate/address"
+	)
 		select {
 		case <-t.C:
 			err := os.WriteFile("/app/static/_index.md", []byte(fmt.Sprintf(content, b)), 0644)

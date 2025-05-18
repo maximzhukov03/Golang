@@ -49,7 +49,7 @@ func handlerSearch(w http.ResponseWriter, r *http.Request){
 	query := &suggest.RequestParams{Query: req.Query}
     res, err := api.Address(context.Background(), query)
 	if err != nil{
-		http.Error(w, "DaData СЛОМАНА ПОХОДУ"+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "DaData" + err.Error(), http.StatusInternalServerError)
 	}
 	for _, elem := range res{
 		addr := &Address{
@@ -58,7 +58,7 @@ func handlerSearch(w http.ResponseWriter, r *http.Request){
 		}
 		result.Addresses = append(result.Addresses, addr)
 	}
-
+	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(result)
 }
@@ -79,7 +79,10 @@ func handlerGeocode(w http.ResponseWriter, r *http.Request){
 	}
 	query := &suggest.GeolocateParams{Lat: req.Lat, Lon: req.Lng, }
     res, err := api.GeoLocate(context.Background(), query)
-
+	if err != nil{
+		http.Error(w, "DaData" + err.Error(), http.StatusInternalServerError)
+		return
+	}
 	for _, elem := range res{
 		addr := &Address{
 			Value: elem.Value,
@@ -87,7 +90,7 @@ func handlerGeocode(w http.ResponseWriter, r *http.Request){
 		}
 		result.Addresses = append(result.Addresses, addr)
 	}
-
+	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(result)
 }
@@ -113,6 +116,6 @@ func DaDataExample()  {
 func main(){
 	r := chi.NewRouter()
 	r.Post("/api/address/search", handlerSearch)
-	// r.Post("/api/address/geocode", handlerGeocode)
+	r.Post("/api/address/geocode", handlerGeocode)
 	http.ListenAndServe(":8080", r)
 }

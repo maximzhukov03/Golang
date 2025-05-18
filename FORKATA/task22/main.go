@@ -67,15 +67,18 @@ func handlerGeocode(w http.ResponseWriter, r *http.Request){
 
 	var req RequestAddressGeocode
 	var result ResponseAddress
-	apiHelp := dadata.NewSuggestApi()
-	api := 
+	creds := client.Credentials{
+		ApiKeyValue: ("a232f4a2ca9f02d604128a65496fd52f7f9f8857"),
+		SecretKeyValue: ("f0369fd57cb509fec49697904ecc2d248d4eba9c"),
+	}
+	api := dadata.NewSuggestApi(client.WithCredentialProvider(&creds))
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	query := &suggest.R{Lat: req.Lat, Lon: req.Lng, }
-    res, err := api.Address(context.Background(), query)
+	query := &suggest.GeolocateParams{Lat: req.Lat, Lon: req.Lng, }
+    res, err := api.GeoLocate(context.Background(), query)
 
 	for _, elem := range res{
 		addr := &Address{

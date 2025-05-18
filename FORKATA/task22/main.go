@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"encoding/json"
 	"net/http"
@@ -37,8 +36,8 @@ func handlerSearch(w http.ResponseWriter, r *http.Request){
 	var req RequestAddressSearch
 	var result ResponseAddress
 	creds := client.Credentials{
-		ApiKeyValue: os.Getenv("USER_API_KEY"),
-		SecretKeyValue: os.Getenv("USER_API_KEY_SECRET"),
+		ApiKeyValue: ("a232f4a2ca9f02d604128a65496fd52f7f9f8857"),
+		SecretKeyValue: ("f0369fd57cb509fec49697904ecc2d248d4eba9c"),
 	}
 	api := dadata.NewSuggestApi(client.WithCredentialProvider(&creds))
 	err := json.NewDecoder(r.Body).Decode(&req)
@@ -46,7 +45,36 @@ func handlerSearch(w http.ResponseWriter, r *http.Request){
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	fmt.Println(req)
 	query := &suggest.RequestParams{Query: req.Query}
+    res, err := api.Address(context.Background(), query)
+	if err != nil{
+		http.Error(w, "DaData СЛОМАНА ПОХОДУ"+err.Error(), http.StatusInternalServerError)
+	}
+	for _, elem := range res{
+		addr := &Address{
+			Value: elem.Value,
+			City: elem.Data.City,
+		}
+		result.Addresses = append(result.Addresses, addr)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(result)
+}
+
+func handlerGeocode(w http.ResponseWriter, r *http.Request){
+
+	var req RequestAddressGeocode
+	var result ResponseAddress
+	apiHelp := dadata.NewSuggestApi()
+	api := 
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	query := &suggest.R{Lat: req.Lat, Lon: req.Lng, }
     res, err := api.Address(context.Background(), query)
 
 	for _, elem := range res{
@@ -60,31 +88,6 @@ func handlerSearch(w http.ResponseWriter, r *http.Request){
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(result)
 }
-
-// func handlerGeocode(w http.ResponseWriter, r *http.Request){
-// 	var req RequestAddressGeocode
-// 	var result ResponseAddress
-// 	apiHelp := dadata.NewSuggestApi()
-// 	api := 
-// 	err := json.NewDecoder(r.Body).Decode(&req)
-// 	if err != nil {
-// 		http.Error(w, err.Error(), http.StatusBadRequest)
-// 		return
-// 	}
-// 	query := &suggest.R{Lat: req.Lat, Lon: req.Lng, }
-//     res, err := api.Address(context.Background(), query)
-
-// 	for _, elem := range res{
-// 		addr := &Address{
-// 			Value: elem.Value,
-// 			City: elem.Data.City,
-// 		}
-// 		result.Addresses = append(result.Addresses, addr)
-// 	}
-
-// 	w.Header().Set("Content-Type", "application/json")
-// 	json.NewEncoder(w).Encode(result)
-// }
 
 
 func DaDataExample()  {

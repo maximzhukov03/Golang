@@ -64,7 +64,16 @@ type Controller struct{
 	Responder Responder
 }
 
-
+// @Summary      Address Search
+// @Description  get address
+// @Security     ApiKeyAuth
+// @Accept       json
+// @Produce      json
+// @Param        query  query string true  "Get address"
+// @Success      200  {object}  Response
+// @Failure      400  {string}  string
+// @Failure      500  {string}  string
+// @Router       /api/address/search [post]
 func (c *Controller) HandlerSearch(w http.ResponseWriter, r *http.Request){
 	query := r.URL.Query().Get("query")
 	if query == ""{
@@ -86,6 +95,15 @@ func (c *Controller) HandlerSearch(w http.ResponseWriter, r *http.Request){
 	})
 }
 
+// @Summary      Address from Geocode
+// @Description  get address from geocode
+// @Accept       json
+// @Produce      json
+// @Param        query  query string true  "Get address from geocode"
+// @Success      200  {object}  Response
+// @Failure      400  {string}  string
+// @Failure      500  {string}  string
+// @Router       /api/address/geocode [post]
 func (c *Controller) HandlerGeocode(w http.ResponseWriter, r *http.Request){
 	lat := r.URL.Query().Get("lat")
 	lng := r.URL.Query().Get("lon")

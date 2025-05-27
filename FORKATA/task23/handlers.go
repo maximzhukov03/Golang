@@ -86,7 +86,6 @@ func handlerSearch(w http.ResponseWriter, r *http.Request){
 
 // @Summary      Address from Geocode
 // @Description  get address from geocode
-// @Security     ApiKeyAuth
 // @Accept       json
 // @Produce      json
 // @Param        req  body RequestAddressGeocode true  "Get address from geocode"

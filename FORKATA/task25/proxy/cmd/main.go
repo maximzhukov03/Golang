@@ -12,6 +12,11 @@ import (
 	"github.com/go-chi/chi"
 )
 
+// @title           Swagger Example API
+// @version         1.0
+// @description     This is a sample server celler server.
+// @host      localhost:1313
+// @BasePath  /
 func main() {
 	r := chi.NewRouter()
 	reverseProxy := reverse.NewReverseProxy("hugo", "1313")

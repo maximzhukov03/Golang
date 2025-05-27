@@ -68,7 +68,5 @@ paths:
           description: Internal Server Error
           schema:
             type: string
-      security:
-      - ApiKeyAuth: []
       summary: Address Search
 swagger: "2.0"

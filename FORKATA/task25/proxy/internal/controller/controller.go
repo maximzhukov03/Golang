@@ -66,7 +66,6 @@ type Controller struct{
 
 // @Summary      Address Search
 // @Description  get address
-// @Security     ApiKeyAuth
 // @Accept       json
 // @Produce      json
 // @Param        query  query string true  "Get address"

@@ -8,6 +8,8 @@ import (
 	"task25/proxy/internal/controller"
 	"task25/proxy/internal/reverse"
 	address "task25/proxy/internal/usecase"
+	_ "task25/proxy/docs"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"time"
 	"github.com/go-chi/chi"
 )
@@ -31,6 +33,7 @@ func main() {
 	}
 
 	r.Use(reverseProxy.ReverseProxy)
+	r.Get("/swagger/*", httpSwagger.Handler())
 	r.Get("/api/address/search", cont.HandlerSearch)
 	r.Get("/api/address/geocode ", cont.HandlerGeocode)
 	fmt.Println("Starting server on :8080")

@@ -58,11 +58,6 @@ const docTemplate = `{
         },
         "/api/address/search": {
             "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
                 "description": "get address",
                 "consumes": [
                     "application/json"

@@ -59,7 +59,7 @@ func (service *UserService) UpdateUser(ctx context.Context, userH UserStruct) er
 
 
 func (service *UserService) DeleteUser(ctx context.Context, id string) error{
-	if id == "0" || id == ""{
+	if id == ""{
 		log.Println("id are empty")
 		return nil
 	}
@@ -68,7 +68,7 @@ func (service *UserService) DeleteUser(ctx context.Context, id string) error{
 }	
 
 func (service *UserService) GetUser(ctx context.Context, id string) (database.User, error){
-	if id == "0" || id == ""{
+	if id == ""{
 		log.Println("id are empty")
 		return database.User{}, nil
 	}

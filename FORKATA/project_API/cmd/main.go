@@ -11,12 +11,18 @@ import (
 	"golang/project_API/internal/controller"
 	"golang/project_API/internal/repository"
 	"golang/project_API/internal/service"
-
-	"github.com/go-chi/chi/v5"
+	httpSwagger "github.com/swaggo/http-swagger"
+	_ "golang/project_API/docs"
+	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/v5/middleware"
 	_ "github.com/lib/pq"
 )
 
+// @title           Swagger Example API
+// @version         1.0
+// @description     This is a sample server celler server.
+// @host      localhost:8080
+// @BasePath  /users
 func main() {
 	c := config.NewConfig()
 	conf := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", c.DB_HOST, c.DB_PORT, c.DB_USER, c.DB_PASSWORD, c.DB_NAME)
@@ -37,6 +43,7 @@ func main() {
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
+	r.Get("/swagger/*", httpSwagger.Handler())
 	r.Route("/users", func(r chi.Router) {
 		r.Get("/", userHandler.HandlerListUsers)
 		r.Post("/", userHandler.HandlerCreateUser)

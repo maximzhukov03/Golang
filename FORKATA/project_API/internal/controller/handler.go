@@ -73,6 +73,14 @@ func NewHandleUser(service *service.UserService, responder Responder) *HandleUse
 	}
 }
 
+// @Summary      Get User by ID
+// @Description  get user
+// @Accept       json
+// @Produce      json
+// @Param        id  path string true  "User id"
+// @Success      200  {object}  Response
+// @Failure      500  {string}  Response
+// @Router       /users/{id} [get]
 func (h *HandleUser) HandlerGetId(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
@@ -88,6 +96,15 @@ func (h *HandleUser) HandlerGetId(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// @Summary      Create User
+// @Description  create
+// @Accept       json
+// @Produce      json
+// @Param        user  body service.UserStruct true  "User data"
+// @Success      200  {object}  Response
+// @Failure      400  {object}  Response
+// @Failure      500  {object}  Response
+// @Router       /users [post]
 func (h *HandleUser) HandlerCreateUser(w http.ResponseWriter, r *http.Request) {
 	var user service.UserStruct
 
@@ -110,6 +127,15 @@ func (h *HandleUser) HandlerCreateUser(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// @Summary      Update User data Base
+// @Description  update
+// @Accept       json
+// @Produce      json
+// @Param        user  body service.UserStruct true  "User data"
+// @Success      200  {object}  Response
+// @Failure      400  {object}  Response
+// @Failure      500  {object}  Response
+// @Router       /users [put]
 func (h *HandleUser) HandlerUpdateUser(w http.ResponseWriter, r *http.Request) {
 	var user service.UserStruct
 
@@ -132,6 +158,14 @@ func (h *HandleUser) HandlerUpdateUser(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// @Summary      Update User data Base
+// @Description  update
+// @Accept       json
+// @Produce      json
+// @Param        id  path string true  "User id"
+// @Success      200  {object}  Response
+// @Failure      500  {object}  Response
+// @Router       /users/{id} [delete]
 func (h *HandleUser) HandlerDelete(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
@@ -146,6 +180,16 @@ func (h *HandleUser) HandlerDelete(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+
+// @Summary      List of users
+// @Description  get users
+// @Accept       json
+// @Produce      json
+// @Param        limit  query int false  "Лимит" default(10)
+// @Param        offset query int false  "Смещение" default(0)
+// @Success      200  {object}  Response
+// @Failure      500  {object}  Response
+// @Router       /users [get]
 func (h *HandleUser) HandlerListUsers(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	limitStr := query.Get("limit")

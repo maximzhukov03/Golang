@@ -46,25 +46,16 @@ func (d *PostgresDb) Create(ctx context.Context, user User) error{
 }
 
 func (d *PostgresDb) GetByID(ctx context.Context, id string) (User, error){
-	var user User
-	query := `SELECT * FROM users WHERE id = $1`
-	row := d.db.QueryRowContext(ctx, query, id)
-	err := row.Scan(&user.Id, &user.Name, &user.Email)
-	if err != nil{
-		log.Println("Ошибка в поиске в БД")
-		return User{}, err
-	}
-	return user, nil
+    query := `SELECT id, name, email FROM users WHERE id = $1 AND is_deleted = FALSE`
+    var u User
+    err := d.db.QueryRowContext(ctx, query, id).Scan(&u.Id, &u.Name, &u.Email)
+    return u, err
 }
 
 func (d *PostgresDb) Delete(ctx context.Context, id string) error{
-	query := `DELETE FROM users WHERE id = $1 ` 
-	_, err := d.db.ExecContext(ctx, query, id)
-	if err != nil{
-		log.Println("Ошибка в удалении пользователя")
-		return err
-	}
-	return nil
+    query := `UPDATE users SET is_deleted = TRUE WHERE id = $1`
+    _, err := d.db.ExecContext(ctx, query, id)
+    return err
 }
 
 func (d *PostgresDb) Update(ctx context.Context, user User) error{
@@ -78,29 +69,21 @@ func (d *PostgresDb) Update(ctx context.Context, user User) error{
 }
 
 func (d *PostgresDb) List(ctx context.Context, c Conditions) ([]User, error) {
-    query := `SELECT id, name, email FROM users
-              ORDER BY name
-              LIMIT $1 OFFSET $2`
+    query := `SELECT id, name, email FROM users WHERE is_deleted = FALSE LIMIT $1 OFFSET $2`
 
     rows, err := d.db.QueryContext(ctx, query, c.Limit, c.Offset)
     if err != nil {
-        log.Println("Ошибка при выполнении List:", err)
         return nil, err
     }
-	    defer rows.Close()
+    defer rows.Close()
 
     var users []User
     for rows.Next() {
         var u User
         if err := rows.Scan(&u.Id, &u.Name, &u.Email); err != nil {
-            log.Println("Ошибка при сканировании пользователя:", err)
             return nil, err
         }
         users = append(users, u)
     }
-    if err := rows.Err(); err != nil {
-        return nil, err
-    }
-	
     return users, nil
 }

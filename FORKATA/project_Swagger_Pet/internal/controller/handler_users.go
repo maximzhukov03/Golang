@@ -8,7 +8,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
-
+	"time"
 	"github.com/go-chi/chi"
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -214,3 +214,91 @@ func (h *HandleUser) HandlerListUsers(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func (h *HandleUser) JWTAuthMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		authHeader := r.Header.Get("Authorization")
+		if authHeader == "" {
+			h.responder.ErrorBadRequest(w, fmt.Errorf("authorization header is required"))
+			return
+		}
+
+		tokenParts := strings.Split(authHeader, " ")
+		if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
+			h.responder.ErrorBadRequest(w, fmt.Errorf("invalid authorization header format"))
+			return
+		}
+
+		tokenString := tokenParts[1]
+
+		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+			}
+			return []byte("Jkdf04iaosfj9049a409dfpobntp"), nil
+		})
+
+		if err != nil {
+			h.responder.ErrorBadRequest(w, fmt.Errorf("invalid token: %v", err))
+			return
+		}
+
+		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+			if exp, ok := claims["exp"].(float64); ok {
+				if time.Now().Unix() > int64(exp) {
+					h.responder.ErrorBadRequest(w, fmt.Errorf("token expired"))
+					return
+				}
+			}
+			ctx := context.WithValue(r.Context(), "user", claims["sub"])
+			next.ServeHTTP(w, r.WithContext(ctx))
+		} else {
+			h.responder.ErrorBadRequest(w, fmt.Errorf("invalid token"))
+		}
+	})
+}
+
+// @Summary      User Login
+// @Description  Logs user into the system
+// @Accept       json
+// @Produce      json
+// @Param        username  query string true  "The user name for login"
+// @Param        password  query string true  "The password for login"
+// @Success      200  {object}  Response
+// @Failure      400  {object}  Response
+// @Failure      500  {object}  Response
+// @Router       /users/login [get]
+func (h *HandleUser) HandlerLogin(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+	username := query.Get("username")
+	password := query.Get("password")
+
+	if username == "" || password == "" {
+		h.responder.ErrorBadRequest(w, fmt.Errorf("username and password"))
+		return
+	}
+
+	user, err := h.handler.GetByCredentials(r.Context(), username, password)
+	if err != nil {
+		h.responder.ErrorBadRequest(w, fmt.Errorf("ОШИБКА в credentials"))
+		return
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"sub": user.Name,
+		"exp": time.Now().Add(time.Hour * 24).Unix(),
+	})
+
+	tokenString, err := token.SignedString([]byte("Jkdf04iaosfj9049a409dfpobntp"))
+	if err != nil{
+		h.responder.ErrorInternal(w, err)
+		return
+	}
+
+	h.responder.OutputJSON(w, Response{
+		Success: true,
+		Data: map[string]string{
+			"token": tokenString,
+		},
+	})
+}

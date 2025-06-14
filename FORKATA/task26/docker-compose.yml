@@ -1,26 +1,31 @@
-version: '3'
-
 services:
-  server:
+  hugo-server:
     image: klakegg/hugo:0.101.0-ext-alpine
-    container_name: hugo
-    command: server
-    entrypoint: hugo
+    container_name: hugo-server
+    command: server --bind=0.0.0.0 --baseURL=http://localhost
     volumes:
       - "./hugo:/src"
     ports:
       - "1313:1313"
     networks:
-        - mylocal
-  proxy:
-   build: ./proxy
-   container_name: proxy
-   volumes:
-     - "./hugo/content:/app/static"
-   ports:
-     - "8080:8080"
-   networks:
-       - mylocal
+      - mylocal
+
+  proxy-server:
+    build:
+      context: ./proxy
+    container_name: proxy-server
+    volumes:
+      - "./hugo/content:/app/static"
+    ports:
+      - "8080:8080"
+    environment:
+      - HUGO_HOST=hugo-server
+      - HUGO_PORT=1313
+    networks:
+      - mylocal
+    depends_on:
+      - hugo-server
+
 networks:
-    mylocal:
-        driver: bridge
+  mylocal:
+    driver: bridge

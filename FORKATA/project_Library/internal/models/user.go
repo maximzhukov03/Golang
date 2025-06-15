@@ -3,8 +3,8 @@ package models
 import()
 
 type User struct {
-    ID          int    `json:"id" db:"id"`
-    Name        string `json:"name" db:"name"`
-    Email       string `json:"email" db:"email"`
+    ID          string    `json:"id"`
+    Name        string `json:"name"`
+    Email       string `json:"email"`
     RentedBooks []Book `json:"rented_books,omitempty"`
 }

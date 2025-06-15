@@ -20,11 +20,11 @@ func NewUserRepository(db *sql.DB) *UserRepositoryPostgres{
 
 type UserRepository interface {
     Create(ctx context.Context ,user models.User) error
-    GetByID(ctx context.Context, id int) (models.User, error)
+    GetByID(ctx context.Context, id string) (models.User, error)
     // GetByEmail(ctx context.Context, email string) (models.User, error)
     // GetAll(ctx context.Context) ([]models.User, error)
-    GetRentedBooks(ctx context.Context, userID int) ([]models.Book, error)
-    Delete(ctx context.Context, id int) error
+    GetRentedBooks(ctx context.Context, userID string) ([]models.Book, error)
+    Delete(ctx context.Context, id string) error
     // Exists(ctx context.Context, id int) (bool, error)
 }
 
@@ -37,14 +37,14 @@ func (d *UserRepositoryPostgres) Create(ctx context.Context, user models.User) e
 	return err
 }
 
-func (d *UserRepositoryPostgres) GetByID(ctx context.Context, id int) (models.User, error){
+func (d *UserRepositoryPostgres) GetByID(ctx context.Context, id string) (models.User, error){
 	query := `SELECT id, name, email FROM users WHERE id = $1`
     var u models.User
     err := d.db.QueryRowContext(ctx, query, id).Scan(&u.ID, &u.Name, &u.Email)
     return u, err
 }
 
-func (d *UserRepositoryPostgres) GetRentedBooks(ctx context.Context, userID int) ([]models.Book, error) {
+func (d *UserRepositoryPostgres) GetRentedBooks(ctx context.Context, userID string) ([]models.Book, error) {
     var books []models.Book
     
     query := `
@@ -82,7 +82,7 @@ func (d *UserRepositoryPostgres) GetRentedBooks(ctx context.Context, userID int)
     return books, nil
 }
 
-func (d *UserRepositoryPostgres) Delete(ctx context.Context, id int) error{
+func (d *UserRepositoryPostgres) Delete(ctx context.Context, id string) error{
     query := `DELETE FROM users WHERE id = $1`
     _, err := d.db.ExecContext(ctx, query, id)
     return err

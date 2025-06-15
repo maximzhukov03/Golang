@@ -19,12 +19,13 @@ func NewAuthorRepository(db *sql.DB) *AuthorRepositoryPostgres{
 }
 
 type AuthorRepository interface {
-    Create(ctx context.Context ,user models.Author) error
-    GetByID(ctx context.Context, id int) (models.Author, error)
+    Create(ctx context.Context, author models.Author) error
+    GetByID(ctx context.Context, id string) (models.Author, error)
     // GetByEmail(ctx context.Context, email string) (models.User, error)
     // GetAll(ctx context.Context) ([]models.User, error)
-    GetAllBooks(ctx context.Context, userID int) ([]models.Book, error)
-    Delete(ctx context.Context, id int) error
+    GetAllBooks(ctx context.Context, author_id string) ([]models.Book, error)
+    Delete(ctx context.Context, id string) error
+    UpdateAuthorPopularity(ctx context.Context, authorID string) error
     // Exists(ctx context.Context, id int) (bool, error)
 }
 
@@ -37,14 +38,14 @@ func (d *AuthorRepositoryPostgres) Create(ctx context.Context, author models.Aut
 	return err
 }
 
-func (d *AuthorRepositoryPostgres) GetByID(ctx context.Context, id int) (models.Author, error){
+func (d *AuthorRepositoryPostgres) GetByID(ctx context.Context, id string) (models.Author, error){
 	query := `SELECT id, name FROM authors WHERE id = $1`
     var a models.Author
     err := d.db.QueryRowContext(ctx, query, id).Scan(&a.ID, &a.Name)
     return a, err
 }
 
-func (d *AuthorRepositoryPostgres) GetAllBooks(ctx context.Context, authorID int) ([]models.Book, error) {
+func (d *AuthorRepositoryPostgres) GetAllBooks(ctx context.Context, authorID string) ([]models.Book, error) {
     var books []models.Book
     
     query := `
@@ -84,8 +85,50 @@ func (d *AuthorRepositoryPostgres) GetAllBooks(ctx context.Context, authorID int
     return books, nil
 }
 
-func (d *AuthorRepositoryPostgres) Delete(ctx context.Context, id int) error{
+func (d *AuthorRepositoryPostgres) Delete(ctx context.Context, id string) error{
     query := `DELETE FROM authors WHERE id = $1`
     _, err := d.db.ExecContext(ctx, query, id)
     return err
 }	
+
+func (d *AuthorRepositoryPostgres) UpdateAuthorPopularity(ctx context.Context, authorID string, newPopularity int) error {
+    query := `UPDATE authors SET popularity = $1 WHERE id = $2`
+    result, err := d.db.Exec(query, newPopularity, authorID)
+    if err != nil {
+        return fmt.Errorf("failed to update popularity: %w", err)
+    }
+
+    rowsAffected, err := result.RowsAffected()
+    if err != nil {
+        return fmt.Errorf("failed to get rows affected: %w", err)
+    }
+
+    if rowsAffected == 0 {
+        return fmt.Errorf("no author found with id %d", authorID)
+    }
+
+    return nil
+}
+
+func (d *AuthorRepositoryPostgres) GetTop(ctx context.Context) ([]models.Author, error){
+    rows, err := d.db.Query(`SELECT id, name, popularity FROM authors ORDER BY popularity DESC LIMIT 3`)
+    if err != nil{
+        log.Println("Ошибка на уровне получения топа авторов")
+        return nil, err
+    }
+    defer rows.Close()
+
+    var top []models.Author
+
+    for rows.Next(){
+        var author models.Author
+        err := rows.Scan(&author.ID, &author.Name, &author.Popularity)
+        if err != nil{
+            log.Println("ошибка при парсинге строк авторов")
+            continue
+        }
+        top = append(top, author)
+    }
+    
+    return top, nil
+}

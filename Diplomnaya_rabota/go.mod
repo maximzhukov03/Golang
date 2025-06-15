@@ -1,6 +1,6 @@
 module golang/myapp
 
-go 1.23.3
+go 1.19
 
 require (
 	github.com/gin-gonic/gin v1.10.1

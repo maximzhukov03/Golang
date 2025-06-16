@@ -26,6 +26,7 @@ type AuthorRepository interface {
     GetAllBooks(ctx context.Context, author_id string) ([]models.Book, error)
     Delete(ctx context.Context, id string) error
     UpdateAuthorPopularity(ctx context.Context, authorID string) error
+    GetAll(ctx context.Context) ([]models.Author, error)
     // Exists(ctx context.Context, id int) (bool, error)
 }
 
@@ -131,4 +132,18 @@ func (d *AuthorRepositoryPostgres) GetTop(ctx context.Context) ([]models.Author,
     }
     
     return top, nil
+}
+
+func (d *AuthorRepositoryPostgres) GetAll(ctx context.Context) ([]models.Author, error) {
+    rows, err := d.db.QueryContext(ctx, `SELECT id, name FROM authors`)
+    if err != nil { return nil, err }
+    defer rows.Close()
+    var result []models.Author
+    for rows.Next() {
+        var u models.Author
+        if err := rows.Scan(&u.ID, &u.Name); err == nil {
+            result = append(result, u)
+        }
+    }
+    return result, nil
 }

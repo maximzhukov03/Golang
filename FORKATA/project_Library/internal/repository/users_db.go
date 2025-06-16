@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"golang/project_Library/internal/models"
 	"log"
-
-	"github.com/brianvoe/gofakeit/v6"
 )
 
 type UserRepositoryPostgres struct{
@@ -27,6 +25,7 @@ type UserRepository interface {
     // GetAll(ctx context.Context) ([]models.User, error)
     GetRentedBooks(ctx context.Context, userID string) ([]models.Book, error)
     Delete(ctx context.Context, id string) error
+    GetAll(ctx context.Context) ([]models.User, error)
     // Exists(ctx context.Context, id int) (bool, error)
 }
 
@@ -90,16 +89,16 @@ func (d *UserRepositoryPostgres) Delete(ctx context.Context, id string) error{
     return err
 }	
 
-func (d *UserRepositoryPostgres) Cheker(ctx context.Context) error{
-    query := `SELECT COUNT(*) FROM books`
-    var count int
-    row := d.db.QueryRowContext(ctx, query)
-    _ = row.Scan(&count)
-    if count == 0 {
-        for i := 0; i < 50; i++{
-
+func (d *UserRepositoryPostgres) GetAll(ctx context.Context) ([]models.User, error) {
+    rows, err := d.db.QueryContext(ctx, `SELECT id, name, email FROM users`)
+    if err != nil { return nil, err }
+    defer rows.Close()
+    var result []models.User
+    for rows.Next() {
+        var u models.User
+        if err := rows.Scan(&u.ID, &u.Name, &u.Email); err == nil {
+            result = append(result, u)
         }
-    } else {
-        fmt.Println("В таблице books есть данные")
     }
+    return result, nil
 }

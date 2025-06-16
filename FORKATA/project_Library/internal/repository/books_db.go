@@ -22,6 +22,7 @@ type BooksRepository interface {
     GetByID(ctx context.Context, id string) (models.Book, error)
     Delete(ctx context.Context, id string) error
 	Update(ctx context.Context, book models.Book) error
+	Count(ctx context.Context) int
 }
 
 func (d *BooksRepositoryPostgres) Create(ctx context.Context, book models.Book) error{
@@ -57,4 +58,11 @@ func (r *BooksRepositoryPostgres) Update(ctx context.Context, book models.Book) 
 		log.Println("Ошибка при обновлении книги:", err)
 	}
 	return err
+}
+
+func (d *BooksRepositoryPostgres) Count(ctx context.Context) int {
+    var count int
+    row := d.db.QueryRowContext(ctx, `SELECT COUNT(*) FROM books`)
+    _ = row.Scan(&count)
+    return count
 }

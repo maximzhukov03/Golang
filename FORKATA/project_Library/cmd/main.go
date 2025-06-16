@@ -1,21 +1,25 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"golang/project_Library/internal/config"
 	handler "golang/project_Library/internal/controller"
+	"golang/project_Library/internal/models"
 	"golang/project_Library/internal/repository"
 	"golang/project_Library/internal/service"
-	httpSwagger "github.com/swaggo/http-swagger"
 	"log"
 	"net/http"
 	"os"
+	"time"
+
+	"github.com/brianvoe/gofakeit/v6"
+	httpSwagger "github.com/swaggo/http-swagger"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
-
 
 // @title        Library API
 // @version      1.0
@@ -82,4 +86,79 @@ func main() {
 	if err := http.ListenAndServe(":"+port, r); err != nil {
 		log.Fatalf("Ошибка запуска сервера: %v", err)
 	}
+}
+
+
+func SeedDatabase(ctx context.Context, userRepo database.UserRepository, authorRepo database.AuthorRepository, bookRepo database.BooksRepository) error {
+	gofakeit.Seed(time.Now().UnixNano())
+
+	authors, err := authorRepo.GetAll(ctx)
+	if err != nil || len(authors) == 0 {
+		fmt.Println("Таблица authors пуста, добавляем авторов")
+		for i := 0; i < 10; i++ {
+			id := gofakeit.UUID()
+			author := models.Author{
+				ID:         id,
+				Name:       gofakeit.Name(),
+				Popularity: gofakeit.Number(0, 100),
+			}
+			if err := authorRepo.Create(ctx, author); err != nil {
+				return fmt.Errorf("не удалось создать автора: %w", err)
+			}
+		}
+	} else {
+		fmt.Println("В таблице authors уже есть данные")
+	}
+
+	users := []models.User{}
+	rows, err := userRepo.GetAll(ctx)
+	if err != nil || len(rows) == 0 {
+		fmt.Println("Таблица users пуста, добавляем пользователей")
+		for i := 0; i < 55; i++ {
+			id := gofakeit.UUID()
+			user := models.User{
+				ID:    id,
+				Name:  gofakeit.Name(),
+				Email: gofakeit.Email(),
+			}
+			if err := userRepo.Create(ctx, user); err != nil {
+				return fmt.Errorf("не удалось создать пользователя: %w", err)
+			}
+			users = append(users, user)
+		}
+	} else {
+		fmt.Println("В таблице users уже есть данные")
+		users = rows
+	}
+	bookCount := 0
+	row := bookRepo.Count(ctx)
+	if row == 0 {
+		fmt.Println("Таблица books пуста, добавляем книги")
+		authorsList, err := authorRepo.GetAll(ctx)
+		if err != nil || len(authorsList) == 0 {
+			return fmt.Errorf("нет авторов для книг")
+		}
+		for i := 0; i < 100; i++ {
+			author := authorsList[gofakeit.Number(0, len(authorsList)-1)]
+			userID := "" // часть книг без пользователя (не выдана)
+			if gofakeit.Bool() && len(users) > 0 {
+				user := users[gofakeit.Number(0, len(users)-1)]
+				userID = user.ID
+			}
+			book := models.Book{
+				Title:    gofakeit.BookTitle(),
+				AuthorID: author.ID,
+				UserID:   userID,
+			}
+			if err := bookRepo.Create(ctx, book); err != nil {
+				return fmt.Errorf("не удалось создать книгу: %w", err)
+			}
+			bookCount++
+		}
+	} else {
+		fmt.Println("В таблице books уже есть данные")
+	}
+
+	fmt.Println("Заполнение базы успешно завершено.")
+	return nil
 }

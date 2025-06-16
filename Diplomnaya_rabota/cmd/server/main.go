@@ -11,10 +11,10 @@ import (
     swaggerFiles "github.com/swaggo/files"
     ginSwagger "github.com/swaggo/gin-swagger"
 
-    "golang/myapp/internal/handler"
-    "golang//internal/middleware"
-    "golang//internal/repository"
-    "golang//internal/service"
+    "golang/myapp/internal/handlers"
+    "golang/myapp/internal/middleware"
+    "golang/myapp/internal/repository"
+    "golang/myapp/internal/service"
     _ "myapp/docs" // swagger generated docs
 )
 

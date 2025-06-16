@@ -1,14 +1,14 @@
 package service
 
 import (
-    "fmt"
-    "io"
-    "time"
+	"fmt"
+	"io"
+	"time"
 
-    "github.com/google/uuid"
+	"golang/myapp/internal/models"
+	"golang/myapp/internal/repository"
 
-    "golang/myapp/internal/models"
-    "golang/myapp/internal/repository"
+	"github.com/google/uuid"
 )
 
 // FileService описывает бизнес-логику работы с файлами

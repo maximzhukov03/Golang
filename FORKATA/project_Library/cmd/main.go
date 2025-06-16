@@ -13,7 +13,8 @@ import (
 	"net/http"
 	"os"
 	"time"
-
+	_ "golang/project_Library/docs"
+	_ "github.com/lib/pq"
 	"github.com/brianvoe/gofakeit/v6"
 	httpSwagger "github.com/swaggo/http-swagger"
 

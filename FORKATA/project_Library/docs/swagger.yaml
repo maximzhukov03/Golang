@@ -26,7 +26,7 @@ definitions:
       author_id:
         type: string
       id:
-        type: integer
+        type: string
       title:
         type: string
       user_id:

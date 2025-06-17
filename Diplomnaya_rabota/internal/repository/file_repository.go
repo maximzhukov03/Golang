@@ -30,7 +30,7 @@ type SQLiteFileRepository struct {
     db *sql.DB
 }
 
-// NewSQLiteFileRepository создает новый экземпляр SQLiteFileRepository
+// NewSQLiteFileRepository создаёт новый экземпляр SQLiteFileRepository
 func NewSQLiteFileRepository(db *sql.DB) *SQLiteFileRepository {
     return &SQLiteFileRepository{db: db}
 }
@@ -76,7 +76,7 @@ type MinIOStorageClient struct {
     bucket string
 }
 
-// NewMinIOStorageClient создает новый экземпляр MinIOStorageClient
+// NewMinIOStorageClient создаёт новый экземпляр MinIOStorageClient
 func NewMinIOStorageClient(endpoint, accessKey, secretKey, bucket string, useSSL bool) (*MinIOStorageClient, error) {
     client, err := minio.New(endpoint, &minio.Options{
         Creds:  credentials.NewStaticV4(accessKey, secretKey, ""),
@@ -110,3 +110,4 @@ func (m *MinIOStorageClient) PresignedURL(bucket, objectName string, expiry time
     }
     return u.String(), nil
 }
+

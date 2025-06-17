@@ -29,7 +29,6 @@ func NewUserService(repo repository.UserRepository, bcryptCost int) UserService 
 
 // Register создает пользователя и хэширует пароль
 func (s *userService) Register(email, password string) (*models.User, error) {
-    // Проверим, что пользователя с таким email нет
     exists, err := s.repo.GetByEmail(email)
     if err != nil {
         return nil, err
@@ -37,7 +36,6 @@ func (s *userService) Register(email, password string) (*models.User, error) {
     if exists != nil {
         return nil, errors.New("user already exists")
     }
-    // Хэшируем пароль
     hash, err := bcrypt.GenerateFromPassword([]byte(password), s.cost)
     if err != nil {
         return nil, err
@@ -50,7 +48,6 @@ func (s *userService) Register(email, password string) (*models.User, error) {
     if err := s.repo.Create(user); err != nil {
         return nil, err
     }
-    // Не возвращаем PasswordHash в API
     user.PasswordHash = ""
     return user, nil
 }
@@ -67,8 +64,6 @@ func (s *userService) Authenticate(email, password string) (*models.User, error)
     if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
         return nil, errors.New("invalid credentials")
     }
-    // Сбрасываем PasswordHash перед возвратом
     user.PasswordHash = ""
     return user, nil
 }
-

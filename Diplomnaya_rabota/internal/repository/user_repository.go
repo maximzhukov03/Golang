@@ -17,15 +17,15 @@ type SQLiteUserRepository struct {
     db *sql.DB
 }
 
-// NewSQLiteUserRepository создает новый экземпляр SQLiteUserRepository
+// NewSQLiteUserRepository создаёт новый экземпляр SQLiteUserRepository
 func NewSQLiteUserRepository(db *sql.DB) *SQLiteUserRepository {
     return &SQLiteUserRepository{db: db}
 }
 
-// Create добавляет нового пользователя в таблицу users
+// Create добавляет нового пользователя в таблицу users, включая created_at
 func (r *SQLiteUserRepository) Create(user *models.User) error {
-    query := `INSERT INTO users(email, password_hash) VALUES(?, ?)`
-    res, err := r.db.Exec(query, user.Email, user.PasswordHash)
+    query := `INSERT INTO users(email, password_hash, created_at) VALUES(?, ?, ?)`
+    res, err := r.db.Exec(query, user.Email, user.PasswordHash, user.CreatedAt)
     if err != nil {
         return err
     }
@@ -39,10 +39,10 @@ func (r *SQLiteUserRepository) Create(user *models.User) error {
 
 // GetByEmail возвращает пользователя по email или nil, если не найден
 func (r *SQLiteUserRepository) GetByEmail(email string) (*models.User, error) {
-    query := `SELECT id, email, password_hash FROM users WHERE email = ?`
+    query := `SELECT id, email, password_hash, created_at FROM users WHERE email = ?`
     row := r.db.QueryRow(query, email)
     var user models.User
-    if err := row.Scan(&user.ID, &user.Email, &user.PasswordHash); err != nil {
+    if err := row.Scan(&user.ID, &user.Email, &user.PasswordHash, &user.CreatedAt); err != nil {
         if errors.Is(err, sql.ErrNoRows) {
             return nil, nil
         }
@@ -50,7 +50,3 @@ func (r *SQLiteUserRepository) GetByEmail(email string) (*models.User, error) {
     }
     return &user, nil
 }
-
-
-// internal/repository/file_repository.go
-

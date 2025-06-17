@@ -67,7 +67,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
     c.JSON(http.StatusCreated, user)
 }
 
-// Login godoc
+⁡⁣⁢⁢// Login godoc
 // @Summary      Аутентификация пользователя
 // @Description  Возвращает JWT при правильных учётных данных
 // @Tags         users
@@ -77,7 +77,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 // @Success      200    {object}  LoginResponse
 // @Failure      400    {object}  ErrorResponse
 // @Failure      401    {object}  ErrorResponse
-// @Router       /api/login [post]
+// @Router       /api/login [post]⁡
 func (h *AuthHandler) Login(c *gin.Context) {
     var req LoginRequest
     if err := c.ShouldBindJSON(&req); err != nil {

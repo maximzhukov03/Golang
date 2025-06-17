@@ -32,13 +32,11 @@ func NewFileService(repo repository.FileRepository, store repository.StorageClie
 
 // Upload загружает файл в хранилище и сохраняет метаданные
 func (s *fileService) Upload(userID int64, name string, reader io.Reader, size int64, contentType string) (*models.File, error) {
-    // Генерируем уникальное имя объекта
     objectName := fmt.Sprintf("%s_%s", uuid.New().String(), name)
-    // Загружаем в MinIO
     if err := s.store.Upload(s.bucket, objectName, reader, size, contentType); err != nil {
         return nil, err
     }
-    // Сохраняем метаданные
+
     file := &models.File{
         UserID:     userID,
         Name:       name,
@@ -50,7 +48,6 @@ func (s *fileService) Upload(userID int64, name string, reader io.Reader, size i
     if err := s.repo.Save(file); err != nil {
         return nil, err
     }
-    // Генерируем ссылку
     url, err := s.store.PresignedURL(s.bucket, objectName, s.urlTTL)
     if err != nil {
         return nil, err

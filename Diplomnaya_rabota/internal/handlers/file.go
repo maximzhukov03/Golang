@@ -25,6 +25,7 @@ func NewFileHandler(fs service.FileService) *FileHandler {
 // @Tags         files
 // @Accept       multipart/form-data
 // @Produce      json
+// @Security     bearerAuth
 // @Param        Authorization header    string       true  "Bearer JWT"
 // @Param        file           formData  file         true  "Файл (png/jpeg)"
 // @Success      201            {object}  models.File
@@ -62,6 +63,7 @@ func (h *FileHandler) UploadFile(c *gin.Context) {
 // @Description  Возвращает список загруженных файлов с presigned URL
 // @Tags         files
 // @Produce      json
+// @Security     bearerAuth
 // @Param        Authorization header string true "Bearer JWT"
 // @Success      200            {array}   models.File
 // @Failure      401            {object}  ErrorResponse

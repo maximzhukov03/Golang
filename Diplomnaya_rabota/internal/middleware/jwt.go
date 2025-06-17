@@ -10,7 +10,7 @@ import (
 )
 
 // JWTAuth возвращает middleware для проверки JWT из заголовка Authorization
-func JWTAuth() gin.HandlerFunc {
+func JWTAuth(secret string) gin.HandlerFunc {
     return func(c *gin.Context) {
         authHeader := c.GetHeader("Authorization")
         if authHeader == "" {
@@ -29,7 +29,6 @@ func JWTAuth() gin.HandlerFunc {
             c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "JWT secret not configured"})
             return
         }
-
         token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
             if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
                 return nil, jwt.ErrSignatureInvalid
@@ -40,8 +39,6 @@ func JWTAuth() gin.HandlerFunc {
             c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid or expired token"})
             return
         }
-
-        // Извлекаем claims и добавляем userID в контекст
         claims, ok := token.Claims.(jwt.MapClaims)
         if !ok {
             c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid token claims"})

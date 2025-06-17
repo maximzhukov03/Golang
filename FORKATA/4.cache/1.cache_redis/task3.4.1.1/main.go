@@ -24,10 +24,10 @@ func NewCache(client *redis.Client) Cacher {
 }
 
 func (c *cache) Set(key string, value interface{}) error{
-	err := c.client.Set(key, value, 5 * time.Minute)
+	err := c.client.Set(key, value, 5 * time.Minute).Err()
 	if err != nil{
 		log.Println("Ошибка сохранения данных в кэше:", err)
-		return fmt.Errorf("%s: %w", key, err)
+		return err
 	}
 	return nil
 }

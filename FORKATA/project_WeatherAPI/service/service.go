@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"net/http"
 	"time"
 
@@ -31,7 +32,6 @@ type Service interface{
 
 type ProxyService struct{
 	service Service
-
 }
 
 
@@ -48,6 +48,7 @@ func (s *CryptoService) GetBitcoin(ctx context.Context) (Coins, error){
 	key := "bitcoin:usd"
 	res, err := s.cache.Get(key).Result()
 	if err == nil{
+		log.Println("Лезет в кэш")
 		err := json.Unmarshal([]byte(res), &coin)
 		if err != nil{
 			return Coins{}, err
@@ -62,12 +63,13 @@ func (s *CryptoService) GetBitcoin(ctx context.Context) (Coins, error){
     if err != nil {
         return Coins{}, err
     }
+	defer resp.Body.Close()
 	err = json.NewDecoder(resp.Body).Decode(&coin)
 	if err != nil{
 		return Coins{}, err
 	}
 
-	req, err := json.Marshal(resp)
+	req, err := json.Marshal(coin)
 	if err != nil{
 		return Coins{}, nil
 	}
@@ -80,6 +82,7 @@ func (s *CryptoService) GetEthereum(ctx context.Context) (Coins, error){
 	key := "ethereum:usd"
 	res, err := s.cache.Get(key).Result()
 	if err == nil{
+		log.Println("Лезет в кэш")
 		err := json.Unmarshal([]byte(res), &coin)
 		if err != nil{
 			return Coins{}, err
@@ -94,12 +97,13 @@ func (s *CryptoService) GetEthereum(ctx context.Context) (Coins, error){
     if err != nil {
         return Coins{}, err
     }
+	defer resp.Body.Close()
 	err = json.NewDecoder(resp.Body).Decode(&coin)
 	if err != nil{
 		return Coins{}, err
 	}
 
-	req, err := json.Marshal(resp)
+	req, err := json.Marshal(coin)
 	if err != nil{
 		return Coins{}, nil
 	}

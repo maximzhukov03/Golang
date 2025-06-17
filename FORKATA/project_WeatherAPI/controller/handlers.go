@@ -46,7 +46,10 @@ func (s *Handler) HandlerGetEthereum(w http.ResponseWriter, r *http.Request){
 		http.Error(w, "Error", http.StatusInternalServerError)
 		return
 	}
-	s.responder.OutputJSON(w, result)
+	coin := Bitcoin{
+		USD: result.Ethereum.USD,
+	}
+	s.responder.OutputJSON(w, coin)
 }
 
 type Respond struct{}

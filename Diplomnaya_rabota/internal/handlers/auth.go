@@ -67,7 +67,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
     c.JSON(http.StatusCreated, user)
 }
 
-⁡⁣⁢⁢// Login godoc
+// Login godoc
 // @Summary      Аутентификация пользователя
 // @Description  Возвращает JWT при правильных учётных данных
 // @Tags         users

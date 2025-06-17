@@ -11,6 +11,7 @@ require (
 )
 
 require (
+	github.com/go-chi/chi v1.5.5 // indirect
 	github.com/go-redis/redis v6.15.9+incompatible // indirect
 	golang.org/x/sys v0.8.0 // indirect
 )

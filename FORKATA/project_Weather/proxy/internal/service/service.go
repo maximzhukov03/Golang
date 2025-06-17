@@ -4,11 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/ekomobile/dadata/v2/api/suggest"
-	"github.com/ekomobile/dadata/v2/client"
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/ekomobile/dadata/v2/api/suggest"
+	"github.com/ekomobile/dadata/v2/client"
+	"github.com/go-redis/redis"
 )
 
 type GeoService struct {
@@ -20,6 +22,17 @@ type GeoService struct {
 type GeoProvider interface {
 	AddressSearch(input string) ([]*Address, error)
 	GeoCode(lat, lng string) ([]*Address, error)
+}
+
+type ProxyGeoService struct{
+	service GeoProvider
+    cache redis.Client
+}
+
+
+
+func (p *ProxyGeoService) AddressSearch(input string) ([]*Address, error){
+
 }
 
 func NewGeoService(apiKey, secretKey string) *GeoService {

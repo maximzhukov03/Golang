@@ -10,4 +10,7 @@ require (
 	github.com/guptarohit/asciigraph v0.7.3
 )
 
-require golang.org/x/sys v0.8.0 // indirect
+require (
+	github.com/go-redis/redis v6.15.9+incompatible // indirect
+	golang.org/x/sys v0.8.0 // indirect
+)

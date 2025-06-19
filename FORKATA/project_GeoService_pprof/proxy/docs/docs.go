@@ -97,8 +97,99 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth/login": {
+            "post": {
+                "description": "Проверяет учётку и возвращает JWT",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Login",
+                "parameters": [
+                    {
+                        "description": "credentials",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controller.LoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/controller.LoginResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/controller.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/controller.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/register": {
+            "post": {
+                "description": "Регистрирует пользователя и возвращает его ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Register",
+                "parameters": [
+                    {
+                        "description": "credentials",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controller.LoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/controller.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/controller.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/controller.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/mycustompath/pprof/allocs": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Профиль выборочных аллокаций памяти (allocs)",
                 "produces": [
                     "application/octet-stream"
@@ -119,6 +210,11 @@ const docTemplate = `{
         },
         "/mycustompath/pprof/block": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Профиль ожиданий блокировок (block profile)",
                 "produces": [
                     "application/octet-stream"
@@ -139,6 +235,11 @@ const docTemplate = `{
         },
         "/mycustompath/pprof/cmdline": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "cmdline",
                 "produces": [
                     "text/html"
@@ -159,6 +260,11 @@ const docTemplate = `{
         },
         "/mycustompath/pprof/goroutine": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Снимок текущих горутин (goroutine profile)",
                 "produces": [
                     "application/octet-stream"
@@ -179,6 +285,11 @@ const docTemplate = `{
         },
         "/mycustompath/pprof/heap": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Снимок кучи (heap profile)",
                 "produces": [
                     "application/octet-stream"
@@ -199,6 +310,11 @@ const docTemplate = `{
         },
         "/mycustompath/pprof/index": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Все доступные pprof-профили",
                 "produces": [
                     "text/html"
@@ -219,6 +335,11 @@ const docTemplate = `{
         },
         "/mycustompath/pprof/mutex": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Профиль ожидания мьютексов (mutex profile)",
                 "produces": [
                     "application/octet-stream"
@@ -239,6 +360,11 @@ const docTemplate = `{
         },
         "/mycustompath/pprof/profile": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Снимает CPU-профиль за заданное количество секунд (параметр seconds)",
                 "produces": [
                     "application/octet-stream"
@@ -268,6 +394,11 @@ const docTemplate = `{
         },
         "/mycustompath/pprof/symbol": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Выполняет преобразование адресов в имена символов (symbol lookup)",
                 "produces": [
                     "application/octet-stream"
@@ -297,6 +428,11 @@ const docTemplate = `{
         },
         "/mycustompath/pprof/threadcreate": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Профиль создания системных потоков (threadcreate profile)",
                 "produces": [
                     "application/octet-stream"
@@ -317,6 +453,11 @@ const docTemplate = `{
         },
         "/mycustompath/pprof/trace": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Снимает трассировку работы рантайма за заданное количество секунд (параметр seconds)",
                 "produces": [
                     "application/octet-stream"
@@ -346,6 +487,25 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "controller.LoginRequest": {
+            "type": "object",
+            "properties": {
+                "password": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "controller.LoginResponse": {
+            "type": "object",
+            "properties": {
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
         "controller.Response": {
             "type": "object",
             "properties": {

@@ -1,19 +1,17 @@
 module task25/proxy
 
-go 1.23.0
-
-toolchain go1.23.3
+go 1.19
 
 require (
 	github.com/ekomobile/dadata/v2 v2.16.0
 	github.com/go-chi/chi v1.5.5
 	github.com/go-redis/redis v6.15.9+incompatible
-	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/google/uuid v1.6.0
+	github.com/joho/godotenv v1.5.1
 	github.com/swaggo/http-swagger v1.3.4
 	github.com/swaggo/swag v1.16.4
-	golang.org/x/crypto v0.36.0
+	golang.org/x/crypto v0.39.0
 )
 
 require (

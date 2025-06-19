@@ -12,8 +12,7 @@ import (
 	"task25/proxy/internal/repository"
 	"task25/proxy/internal/reverse"
 	"task25/proxy/internal/service"
-
-	// address "task25/proxy/internal/service"
+	"task25/proxy/internal/config"
 	"time"
 
 	"github.com/go-chi/chi"
@@ -26,15 +25,24 @@ import (
 // @host      localhost:1313
 // @BasePath  /
 func main() {
-    db, err := sql.Open("postgres", os.Getenv("DATABASE_URL"))
-    if err != nil {
-        log.Fatal(err)
-    }
+	c := config.NewConfig()
+	conf := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", 
+		c.DB_HOST, c.DB_PORT, c.DB_USER, c.DB_PASSWORD, c.DB_NAME)
+	
+	db, err := sql.Open("postgres", conf)
+	if err != nil {
+		log.Fatalf("Не удалось подключиться к БД: %v", err)
+	}
+	defer db.Close()
+
+	if err := db.Ping(); err != nil {
+		log.Fatalf("Пинг БД: %v", err)
+	}
     userRepo := database.NewUserRepositoryPostgres(db)
     userSvc  := service.NewUserSevice(userRepo)
-
-    apiKey, secret := os.Getenv("DA_API_KEY"), os.Getenv("DA_SECRET")
-    geoSvc := service.NewGeoService(apiKey, secret)
+	apiKey := "a232f4a2ca9f02d604128a65496fd52f7f9f8857"
+	secretKey := "f0369fd57cb509fec49697904ecc2d248d4eba9c"
+    geoSvc := service.NewGeoService(apiKey, secretKey)
 
     resp := controller.NewResponder()
     cont := controller.Controller{

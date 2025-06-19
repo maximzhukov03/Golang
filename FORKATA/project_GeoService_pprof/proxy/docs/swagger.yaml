@@ -1,5 +1,17 @@
 basePath: /
 definitions:
+  controller.LoginRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  controller.LoginResponse:
+    properties:
+      token:
+        type: string
+    type: object
   controller.Response:
     properties:
       data: {}
@@ -69,6 +81,62 @@ paths:
           schema:
             type: string
       summary: Address Search
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Проверяет учётку и возвращает JWT
+      parameters:
+      - description: credentials
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controller.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/controller.Response'
+      summary: Login
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Регистрирует пользователя и возвращает его ID
+      parameters:
+      - description: credentials
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controller.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/controller.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.Response'
+      summary: Register
   /mycustompath/pprof/allocs:
     get:
       description: Профиль выборочных аллокаций памяти (allocs)
@@ -79,6 +147,8 @@ paths:
           description: pprof allocs binary
           schema:
             type: file
+      security:
+      - BearerAuth: []
       summary: Allocation Samples
       tags:
       - diagnostics
@@ -92,6 +162,8 @@ paths:
           description: pprof block binary
           schema:
             type: file
+      security:
+      - BearerAuth: []
       summary: Block Profile
       tags:
       - diagnostics
@@ -105,6 +177,8 @@ paths:
           description: HTML со списком профилей
           schema:
             type: string
+      security:
+      - BearerAuth: []
       summary: Pprof Cmdline
       tags:
       - diagnostics
@@ -118,6 +192,8 @@ paths:
           description: pprof goroutine binary
           schema:
             type: file
+      security:
+      - BearerAuth: []
       summary: Goroutine Snapshot
       tags:
       - diagnostics
@@ -131,6 +207,8 @@ paths:
           description: pprof heap binary
           schema:
             type: file
+      security:
+      - BearerAuth: []
       summary: Heap Profile
       tags:
       - diagnostics
@@ -144,6 +222,8 @@ paths:
           description: HTML со списком профилей
           schema:
             type: string
+      security:
+      - BearerAuth: []
       summary: Pprof Index
       tags:
       - diagnostics
@@ -157,6 +237,8 @@ paths:
           description: pprof mutex binary
           schema:
             type: file
+      security:
+      - BearerAuth: []
       summary: Mutex Profile
       tags:
       - diagnostics
@@ -176,6 +258,8 @@ paths:
           description: pprof CPU binary
           schema:
             type: file
+      security:
+      - BearerAuth: []
       summary: CPU-профиль
       tags:
       - diagnostics
@@ -195,6 +279,8 @@ paths:
           description: pprof symbol binary
           schema:
             type: file
+      security:
+      - BearerAuth: []
       summary: Symbol Lookup
       tags:
       - diagnostics
@@ -208,6 +294,8 @@ paths:
           description: pprof threadcreate binary
           schema:
             type: file
+      security:
+      - BearerAuth: []
       summary: Thread Creation Profile
       tags:
       - diagnostics
@@ -228,6 +316,8 @@ paths:
           description: pprof trace binary
           schema:
             type: file
+      security:
+      - BearerAuth: []
       summary: Runtime Trace
       tags:
       - diagnostics

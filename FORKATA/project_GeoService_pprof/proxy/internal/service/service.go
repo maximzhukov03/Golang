@@ -13,6 +13,7 @@ import (
 	"github.com/ekomobile/dadata/v2/api/suggest"
 	"github.com/ekomobile/dadata/v2/client"
 	"github.com/go-redis/redis"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -30,7 +31,8 @@ func (s *UserService) CreateUser(ctx context.Context, user_name, password string
 	if user_name == "" || password == ""{
 		return fmt.Errorf("user_name or password are empty")
 	}
-	err := s.service.Create(ctx, user_name, password)
+	id := uuid.New()
+	err := s.service.Create(ctx, id.String(), user_name, password)
 	if err != nil{
 		return err
 	}

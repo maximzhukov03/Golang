@@ -8,10 +8,59 @@ import (
 	"net/url"
 	"strings"
 
+	"task25/proxy/internal/repository"
+
 	"github.com/ekomobile/dadata/v2/api/suggest"
 	"github.com/ekomobile/dadata/v2/client"
 	"github.com/go-redis/redis"
+	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 )
+
+type UserService struct{
+	service *database.UserRepositoryPostgres
+}
+
+func NewUserSevice(db *database.UserRepositoryPostgres) *UserService{
+	return &UserService{
+		service: db,
+	}
+}
+
+func (s *UserService) CreateUser(ctx context.Context, user_name, password string) error{
+	if user_name == "" || password == ""{
+		return fmt.Errorf("user_name or password are empty")
+	}
+	id := uuid.New()
+	err := s.service.Create(ctx, id.String(), user_name, password)
+	if err != nil{
+		return err
+	}
+	return nil
+}
+
+func (s *UserService) DeleteUser(ctx context.Context, user_name string) error{
+	if user_name == ""{
+		return fmt.Errorf("user_name are empty")
+	}
+	err := s.service.Delete(ctx, user_name)
+	if err != nil{
+		return err
+	}
+	return nil
+}
+
+func (s *UserService) FindForUserName(ctx context.Context, user_name string) (*database.User, error){
+	user := &database.User{}
+	if user_name == ""{
+		return nil, fmt.Errorf("user_name are empty")
+	}
+	user, err := s.service.FindUser(ctx, user_name)
+	if err != nil{
+		return nil, err
+	}
+	return user, nil
+}
 
 type GeoService struct {
 	api       *suggest.Api
@@ -27,12 +76,6 @@ type GeoProvider interface {
 type ProxyGeoService struct{
 	service GeoProvider
     cache redis.Client
-}
-
-
-
-func (p *ProxyGeoService) AddressSearch(input string) ([]*Address, error){
-
 }
 
 func NewGeoService(apiKey, secretKey string) *GeoService {
@@ -116,4 +159,31 @@ func (g *GeoService) GeoCode(lat, lng string) ([]*Address, error) {
 	}
 
 	return res, nil
+}
+
+
+func (s *UserService) Register(ctx context.Context, username, password string) (string, error) {
+    if username == "" || password == "" {
+        return "", fmt.Errorf("username or password empty")
+    }
+    hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+    if err != nil {
+        return "", err
+    }
+    id := uuid.New()
+    if err := s.service.Create(ctx, id.String(), username, string(hash)); err != nil {
+        return "", err
+    }
+    return id.String(), nil
+}
+
+func (s *UserService) Authenticate(ctx context.Context, username, password string) (string, error) {
+    user, err := s.service.FindUser(ctx, username)
+    if err != nil {
+        return "", err
+    }
+    if bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)) != nil {
+        return "", fmt.Errorf("invalid credentials")
+    }
+    return user.ID, nil
 }

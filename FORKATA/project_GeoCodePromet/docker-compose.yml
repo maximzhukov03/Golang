@@ -1,0 +1,58 @@
+services:
+  postgres:
+    image: postgres:13
+    container_name: pg-db
+    environment:
+      POSTGRES_USER:   postgres
+      POSTGRES_PASSWORD: goLANG
+      POSTGRES_DB:       postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./proxy/migrations:/docker-entrypoint-initdb.d
+    networks:
+      - backend_net
+
+  hugo-server:
+    image: klakegg/hugo:0.101.0-ext-alpine
+    container_name: hugo-server
+    command: server --bind=0.0.0.0 --baseURL=http://localhost
+    volumes:
+      - ./hugo:/src
+    ports:
+      - "1313:1313"
+    networks:
+      - frontend_net
+      - backend_net
+
+  proxy-server:
+    build:
+      context: ./proxy
+      dockerfile: Dockerfile
+    container_name: proxy-server
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=goLANG
+      - DB_NAME=postgres
+      - HUGO_HOST=hugo-server
+      - HUGO_PORT=1313
+    volumes:
+      - ./proxy/migrations:/app/migrations
+      - ./proxy/.env:/app/.env:ro
+    depends_on:
+      - postgres
+      - hugo-server
+    networks:
+      - backend_net
+
+networks:
+  frontend_net:
+    driver: bridge
+  backend_net:
+    driver: bridge
+
+volumes:
+  postgres_data:

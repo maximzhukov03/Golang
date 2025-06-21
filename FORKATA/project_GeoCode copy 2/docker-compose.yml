@@ -1,0 +1,35 @@
+version: "3.8"
+
+services:
+  hugo-server:
+    image: klakegg/hugo:0.101.0-ext-alpine
+    container_name: hugo-server
+    command: server --bind=0.0.0.0 --baseURL=http://localhost
+    volumes:
+      - ./hugo:/src
+    ports:
+      - "1313:1313"
+    networks:
+      - mylocal
+
+  proxy-server:
+    build:
+      context: ./proxy
+      dockerfile: Dockerfile
+    container_name: proxy-server
+    volumes:
+      - ./proxy/init.sql:/app/init.sql
+    ports:
+      - "8080:8080"
+    environment:
+      - HUGO_HOST=hugo-server
+      - HUGO_PORT=1313
+      - DATABASE_URL=postgres://user:pass@db:5432/mydb?sslmode=disable
+    networks:
+      - mylocal
+    depends_on:
+      - hugo-server
+
+networks:
+  mylocal:
+    driver: bridge
